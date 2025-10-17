@@ -3,6 +3,8 @@
   const LS_ACTIVE_KEY = 'seller_license_active_code';
   const LS_ACTIVE_META_KEY = 'seller_license_active_meta';
   const LS_CATALOG_KEY = 'seller_license_catalog';
+  const LS_USED_CODES_KEY = 'seller_license_used_codes';
+  const LS_TRIAL_USED_KEY = 'seller_license_trial_consumed';
   const TRIAL_CODE = 'SELLER-TRIAL-1';
   const LEGACY_TRIAL_CODES = ['SELLER-TRIAL-7'];
   const TRIAL_DURATION_MS = 24 * 60 * 60 * 1000; // 1 hari
@@ -10,6 +12,40 @@
 
   function isTrialCode(code){
     return [TRIAL_CODE, ...LEGACY_TRIAL_CODES].includes(code);
+  }
+
+  function getUsedCodes(){
+    try{
+      const raw = localStorage.getItem(LS_USED_CODES_KEY);
+      if(!raw) return new Set();
+      const arr = JSON.parse(raw);
+      if(!Array.isArray(arr)) return new Set();
+      return new Set(arr.map(String));
+    }catch(e){ return new Set(); }
+  }
+
+  function persistUsedCodes(set){
+    try{
+      const arr = Array.from(set);
+      localStorage.setItem(LS_USED_CODES_KEY, JSON.stringify(arr));
+    }catch(e){ /* abaikan */ }
+  }
+
+  function markCodeUsed(code){
+    if(!code) return;
+    const used = getUsedCodes();
+    if(!used.has(code)){
+      used.add(code);
+      persistUsedCodes(used);
+    }
+  }
+
+  function hasUsedTrial(){
+    return localStorage.getItem(LS_TRIAL_USED_KEY) === '1';
+  }
+
+  function markTrialUsed(){
+    localStorage.setItem(LS_TRIAL_USED_KEY, '1');
   }
 
   function readActiveState(){
@@ -29,7 +65,11 @@
       // abaikan parsing error dan perlakukan seperti tanpa metadata
     }
 
+    markCodeUsed(code);
     if(isTrialCode(code)){
+      if(!hasUsedTrial()){
+        markTrialUsed();
+      }
       if(!activatedAt){
         activatedAt = Date.now();
         localStorage.setItem(LS_ACTIVE_META_KEY, JSON.stringify({code, activatedAt}));
@@ -49,6 +89,10 @@
     localStorage.setItem(LS_ACTIVE_KEY, code);
     const activatedAt = Date.now();
     localStorage.setItem(LS_ACTIVE_META_KEY, JSON.stringify({code, activatedAt}));
+    markCodeUsed(code);
+    if(isTrialCode(code)){
+      markTrialUsed();
+    }
   }
 
   function getCatalog(){
@@ -84,7 +128,21 @@
     activate(code){
       const c = normalize(code);
       if(!c) return {ok:false, message:'Masukkan kode lisensi.'};
+      const current = evaluateState();
+      if(current && current.code === c){
+        return {ok:true, code:c};
+      }
       if(!getCatalog().includes(c)) return {ok:false, message:'Kode lisensi tidak dikenal.'};
+      if(isTrialCode(c)){
+        if(hasUsedTrial()){
+          return {ok:false, message:'Lisensi trial sudah pernah digunakan di perangkat ini.'};
+        }
+      }else{
+        const used = getUsedCodes();
+        if(used.has(c)){
+          return {ok:false, message:'Kode lisensi ini sudah pernah digunakan di perangkat ini.'};
+        }
+      }
       persistActiveState(c);
       dispatch(true, c);
       return {ok:true, code:c};
