@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Kalkulator Harga Jual Shopee — Full Client-side</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script>
+    (function(){const d=document.documentElement;const t=localStorage.getItem('theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches)){d.classList.add('dark');}else{d.classList.remove('dark');}})();
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    :root{--bg:#f8fafc;--bg-offset:#fff;--card-bg:#fff;--border:#e2e8f0;--text-main:#0f172a;--text-secondary:#64748b;--accent:#4f46e5;--accent-hover:#4338ca}
+    html.dark{--bg:#0d121f;--bg-offset:#111827;--card-bg:#1e293b;--border:#334155;--text-main:#f1f5f9;--text-secondary:#94a3b8;--accent:#6366f1;--accent-hover:#818cf8}
+    body{font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial;background:var(--bg);color:var(--text-secondary)}
+    h1,h2,h3,.font-bold{color:var(--text-main)}
+    .input-group{position:relative}
+    .input-group .prefix,.input-group .suffix{position:absolute;top:0;bottom:0;display:flex;align-items:center;background:#f3f4f6;border:1px solid #d1d5db;color:#4b5563;font-size:.875rem;padding:0 .75rem}
+    html.dark .input-group .prefix,html.dark .input-group .suffix{background:#374151;border-color:#4b5563;color:#d1d5db}
+    .input-group .prefix{border-right:none;border-radius:.5rem 0 0 .5rem}
+    .input-group .suffix{border-left:none;border-radius:0 .5rem .5rem 0;right:0}
+    .input-group input{padding-left:3rem}
+    .input-group input.with-suffix{padding-right:3.5rem}
+    .result-row{display:flex;justify-content:space-between;align-items:center;padding:.5rem 0;border-bottom:1px solid var(--border)}
+    .result-row:last-child{border-bottom:0}
+    .profit-positive{color:#16a34a}.dark .profit-positive{color:#4ade80}
+    .profit-negative{color:#dc2626}.dark .profit-negative{color:#f87171}
+    .calc-input-field{background:var(--bg)!important;border-color:var(--border)!important;color:var(--text-main)!important}
+    .calc-card-bg{background:var(--card-bg)}
+    .result-summary-box{background:var(--bg)}
+  </style>
+</head>
+<body class="antialiased">
+<header class="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-b border-gray-200 dark:border-slate-800">
+  <nav class="container mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-16">
+      <a href="#" class="text-2xl font-bold"><strong>Apps</strong>Lets</a>
+      <div class="hidden md:flex items-center gap-6 text-sm font-medium">
+        <button id="themeToggle" class="text-sm font-semibold text-gray-600 dark:text-gray-300">Tema</button>
+      </div>
+    </div>
+  </nav>
+</header>
+
+<main>
+<div class="container mx-auto py-12 px-4">
+  <div class="text-center mb-10">
+    <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight">Kalkulator Harga Jual & Profit Shopee</h1>
+    <p class="mt-3 text-lg max-w-2xl mx-auto">Semua perhitungan dilakukan di browser. Tidak ada panggilan API.</p>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 max-w-6xl mx-auto">
+    <div class="lg:col-span-3 space-y-4">
+      <form id="calculator-form">
+        <div class="p-5 calc-card-bg rounded-xl shadow-md border border-[var(--border)] space-y-4">
+          <h2 class="text-lg font-bold">Data Transaksi</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-medium">Jumlah Barang</label>
+              <input type="number" name="jumlah_barang" value="1" min="1" required class="calc-input-field mt-1 block w-full rounded-lg text-sm p-2">
+            </div>
+            <div>
+              <label class="block text-xs font-medium">Harga Modal (per unit)</label>
+              <div class="input-group mt-1">
+                <span class="prefix">Rp</span>
+                <input type="number" name="harga_modal" value="0" min="0" required class="calc-input-field block w-full rounded-lg text-sm p-2">
+              </div>
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-medium">Harga Jual (per unit)</label>
+            <div class="input-group mt-1">
+              <span class="prefix">Rp</span>
+              <input type="number" name="harga_jual" value="0" min="0" required class="calc-input-field block w-full rounded-lg text-sm p-2">
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-medium">Diskon Penjual?</label>
+            <select name="ada_diskon" class="calc-input-field mt-1 block w-full rounded-lg text-sm p-2">
+              <option value="tidak">Tidak</option>
+              <option value="ya">Ya</option>
+            </select>
+          </div>
+          <div id="diskon-fields" class="hidden space-y-4 border-t border-[var(--border)] pt-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-medium">Diskon Produk</label>
+                <div class="flex mt-1">
+                  <input type="number" name="diskon_produk_nilai" value="0" min="0" class="calc-input-field rounded-l-lg text-sm p-2 w-full">
+                  <select name="diskon_produk_tipe" class="calc-input-field rounded-r-lg border-l-0 text-sm p-2">
+                    <option value="rp">Rp</option><option value="%">%</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs font-medium">Voucher Toko</label>
+                <div class="flex mt-1">
+                  <input type="number" name="voucher_toko_nilai" value="0" min="0" class="calc-input-field rounded-l-lg text-sm p-2 w-full">
+                  <select name="voucher_toko_tipe" class="calc-input-field rounded-r-lg border-l-0 text-sm p-2">
+                    <option value="rp">Rp</option><option value="%">%</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4 p-5 calc-card-bg rounded-xl shadow-md border border-[var(--border)] space-y-4">
+          <h2 class="text-lg font-bold">Biaya Layanan/Administrasi</h2>
+          <div>
+            <label class="block text-xs font-medium">Kategori Produk</label>
+            <select name="kategori" id="kategori" class="calc-input-field mt-1 block w-full rounded-lg text-sm p-2">
+              <option value="C">Kategori C (Elektronik, Komputer, HP) - Admin 5.75%</option>
+              <option value="B">Kategori B (Perlengkapan Rumah, Mainan) - Admin 8%</option>
+              <option value="A">Kategori A (Fashion, Otomotif) - Admin 8%</option>
+              <option value="manual">Lainnya (Input Manual)</option>
+            </select>
+          </div>
+          <div id="persen-admin-manual-container" class="hidden">
+            <label class="block text-xs font-medium">Biaya Administrasi Manual</label>
+            <div class="input-group mt-1">
+              <input type="number" name="persen_admin_manual" value="5.75" step="0.01" min="0" class="calc-input-field with-suffix block w-full rounded-lg text-sm p-2 pl-3">
+              <span class="suffix">%</span>
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-medium">Program Promosi</label>
+            <select name="program_promosi" class="calc-input-field mt-1 block w-full rounded-lg text-sm p-2">
+              <option value="go_xtra_dan_promo_xtra">Gratis Ongkir XTRA + Promo XTRA</option>
+              <option value="go_xtra_saja">Hanya Gratis Ongkir XTRA</option>
+              <option value="promo_xtra_saja">Hanya Promo XTRA</option>
+              <option value="tidak" selected>Tidak Ikut Program</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium">Penjualan dari Live?</label>
+            <select name="jual_live" class="calc-input-field mt-1 block w-full rounded-lg text-sm p-2">
+              <option value="tidak">Tidak</option><option value="ya">Ya</option>
+            </select>
+          </div>
+          <div id="live-xtra-fields" class="hidden">
+            <label class="block text-xs font-medium">Biaya Program Live XTRA</label>
+            <div class="input-group mt-1">
+              <input type="number" name="persen_live" value="3.0" step="0.1" min="0" class="calc-input-field with-suffix block w-full rounded-lg text-sm p-2 pl-3">
+              <span class="suffix">%</span>
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-medium">Biaya Program Lainnya (Opsional)</label>
+            <div class="input-group mt-1">
+              <span class="prefix">Rp</span>
+              <input type="number" name="biaya_lainnya" value="0" min="0" class="calc-input-field block w-full rounded-lg text-sm p-2">
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <div class="lg:col-span-2 space-y-4">
+      <div id="result-area" class="p-5 calc-card-bg rounded-xl shadow-md border border-[var(--border)] sticky top-20">
+        <div id="result-content">
+          <div class="pb-3 border-b border-[var(--border)]">
+            <p class="text-xs font-medium">Total Pembayaran Pembeli</p>
+            <p id="result-total-pembayaran" class="text-2xl font-bold">Rp 0</p>
+          </div>
+          <div class="py-3">
+            <p class="text-sm font-semibold mb-2">Detail Potongan</p>
+            <div class="space-y-1 text-xs">
+              <div class="result-row"><span>Biaya Administrasi</span><span id="result-biaya-admin" class="font-mono">Rp 0</span></div>
+              <div class="result-row"><span>Biaya Proses Pesanan</span><span id="result-biaya-proses" class="font-mono">Rp 0</span></div>
+              <div class="result-row" id="result-row-program-promosi"><span>Biaya Program Promosi</span><span id="result-biaya-program-promosi" class="font-mono">Rp 0</span></div>
+              <div class="result-row" id="result-row-live-xtra"><span>Biaya Live XTRA</span><span id="result-biaya-live-xtra" class="font-mono">Rp 0</span></div>
+              <div class="result-row"><span>Biaya Program Lainnya</span><span id="result-biaya-lainnya" class="font-mono">Rp 0</span></div>
+              <div class="result-row font-semibold !border-t mt-2 pt-2"><span class="text-gray-800">Total Biaya Layanan</span><span id="result-total-biaya" class="font-mono text-red-500">Rp 0</span></div>
+            </div>
+          </div>
+          <div class="pt-3 border-t border-[var(--border)] result-summary-box p-3 rounded-lg -mx-5 -mb-5 mt-2">
+            <div class="result-row !border-0 mb-2">
+              <p class="text-sm font-bold">Dana Diterima Penjual</p>
+              <p id="result-dana-diterima" class="text-xl font-bold">Rp 0</p>
+            </div>
+            <div class="result-row !border-0">
+              <p class="text-sm font-bold profit-positive">Profit</p>
+              <p id="result-profit" class="text-xl font-bold profit-positive">Rp 0</p>
+            </div>
+          </div>
+          <div id="summary-per-produk" class="hidden pt-3 border-t border-[var(--border)] mt-3">
+            <div class="space-y-2 text-xs">
+              <div class="result-row !border-0">
+                <span>Total Harga Jual (<span id="summary-jumlah-barang"></span> barang)</span>
+                <span id="summary-harga-jual-total" class="font-mono font-semibold">Rp 0</span>
+              </div>
+              <div class="result-row !border-0">
+                <span>Profit per Produk</span>
+                <span id="summary-profit-per-produk" class="font-mono font-semibold">Rp 0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const $ = (s,p=document)=>p.querySelector(s);
+  const $$ = (s,p=document)=>[...p.querySelectorAll(s)];
+  $('#themeToggle')?.addEventListener('click',()=>{const d=document.documentElement;const isDark=d.classList.toggle('dark');localStorage.setItem('theme',isDark?'dark':'light');});
+
+  const form = $('#calculator-form');
+  const fields = $$('input[type="number"], select', form);
+  const diskonSelect = form.querySelector('select[name="ada_diskon"]');
+  const diskonFields = $('#diskon-fields');
+  const liveSelect = form.querySelector('select[name="jual_live"]');
+  const liveFields = $('#live-xtra-fields');
+  const kategoriSelect = $('#kategori');
+  const manualAdminContainer = $('#persen-admin-manual-container');
+  const manualAdminInput = form.querySelector('input[name="persen_admin_manual"]');
+
+  const fmt = v => new Intl.NumberFormat('id-ID',{minimumFractionDigits:0,maximumFractionDigits:0}).format(Math.round(Number(v)||0));
+
+  function adminPercent(kategori, manual){
+    if(kategori==='C') return 5.75;
+    if(kategori==='B') return 8.0;
+    if(kategori==='A') return 8.0;
+    return Number(manual||0);
+  }
+  function promoPercents(program){
+    if(program==='go_xtra_dan_promo_xtra') return { go:4.0, promo:3.0, cap:10000 };
+    if(program==='go_xtra_saja') return { go:4.0, promo:0.0, cap:10000 };
+    if(program==='promo_xtra_saja') return { go:0.0, promo:3.0, cap:10000 };
+    return { go:0.0, promo:0.0, cap:10000 };
+  }
+  function applyDiscount(harga, tipe, nilai){
+    if(!nilai) return harga;
+    return tipe==='%' ? Math.max(0, harga - (harga*nilai/100)) : Math.max(0, harga - nilai);
+  }
+
+  function compute(payload){
+    const jml = Math.max(1, Number(payload.jumlah_barang||1));
+    const modal = Number(payload.harga_modal||0);
+    let hj = Number(payload.harga_jual||0);
+
+    if(payload.ada_diskon==='ya'){
+      hj = applyDiscount(hj, payload.diskon_produk_tipe||'rp', Number(payload.diskon_produk_nilai||0));
+      hj = applyDiscount(hj, payload.voucher_toko_tipe||'rp', Number(payload.voucher_toko_nilai||0));
+    }
+
+    const total_pembayaran_pembeli = hj * jml;
+
+    const persen_admin = adminPercent(payload.kategori||'C', payload.persen_admin_manual);
+    const admin_fee = total_pembayaran_pembeli * (persen_admin/100);
+
+    const { go, promo, cap } = promoPercents(payload.program_promosi||'tidak');
+    const biaya_go = Math.min(cap*jml, total_pembayaran_pembeli * (go/100));
+    const biaya_promo = Math.min(cap*jml, total_pembayaran_pembeli * (promo/100));
+    const biaya_program_total = biaya_go + biaya_promo;
+
+    const biaya_live = (payload.jual_live==='ya') ? total_pembayaran_pembeli * (Number(payload.persen_live||0)/100) : 0;
+    const biaya_proses = 1250 * jml;
+    const biaya_lainnya = Number(payload.biaya_lainnya||0);
+
+    const total_biaya_layanan = admin_fee + biaya_proses + biaya_program_total + biaya_live + biaya_lainnya;
+
+    const dana_diterima = total_pembayaran_pembeli - total_biaya_layanan;
+    const modal_total = modal * jml;
+    const profit = dana_diterima - modal_total;
+
+    return {
+      jumlah_barang: jml,
+      harga_jual_total_sebelum_diskon: Number(payload.harga_jual||0) * jml,
+      total_pembayaran_pembeli,
+      dana_diterima,
+      profit,
+      profit_per_produk: profit / jml,
+      potongan: {
+        biaya_administrasi: admin_fee,
+        biaya_proses_pesanan: biaya_proses,
+        biaya_layanan_program_total: biaya_program_total,
+        biaya_live_xtra: biaya_live,
+        biaya_lainnya,
+        total_biaya_layanan
+      }
+    };
+  }
+
+  function updateUI(r){
+    $('#result-total-pembayaran').textContent = `Rp ${fmt(r.total_pembayaran_pembeli)}`;
+    const p = r.potongan;
+    $('#result-biaya-admin').textContent = `Rp ${fmt(p.biaya_administrasi)}`;
+    $('#result-biaya-proses').textContent = `Rp ${fmt(p.biaya_proses_pesanan)}`;
+
+    const rowPromo = $('#result-row-program-promosi');
+    if (p.biaya_layanan_program_total > 0) {
+      $('#result-biaya-program-promosi').textContent = `Rp ${fmt(p.biaya_layanan_program_total)}`;
+      rowPromo.style.display = 'flex';
+    } else { rowPromo.style.display = 'none'; }
+
+    const rowLive = $('#result-row-live-xtra');
+    if (p.biaya_live_xtra > 0) {
+      $('#result-biaya-live-xtra').textContent = `Rp ${fmt(p.biaya_live_xtra)}`;
+      rowLive.style.display = 'flex';
+    } else { rowLive.style.display = 'none'; }
+
+    $('#result-biaya-lainnya').textContent = `Rp ${fmt(p.biaya_lainnya)}`;
+    $('#result-total-biaya').textContent = `Rp ${fmt(p.total_biaya_layanan)}`;
+
+    $('#result-dana-diterima').textContent = `Rp ${fmt(r.dana_diterima)}`;
+    const profitEl = $('#result-profit');
+    const profitLabel = profitEl.previousElementSibling;
+    const val = Number(r.profit||0);
+    profitEl.textContent = `Rp ${fmt(val)}`;
+    profitEl.classList.toggle('profit-positive', val >= 0);
+    profitEl.classList.toggle('profit-negative', val < 0);
+    profitLabel.classList.toggle('profit-positive', val >= 0);
+    profitLabel.classList.toggle('profit-negative', val < 0);
+    profitLabel.textContent = val >= 0 ? 'Profit' : 'Rugi';
+
+    const sumBox = $('#summary-per-produk');
+    if (r.jumlah_barang > 1) {
+      $('#summary-jumlah-barang').textContent = r.jumlah_barang;
+      $('#summary-harga-jual-total').textContent = `Rp ${fmt(r.harga_jual_total_sebelum_diskon)}`;
+      const pp = Number(r.profit_per_produk||0);
+      const el = $('#summary-profit-per-produk');
+      el.textContent = `Rp ${fmt(pp)}`;
+      el.classList.toggle('profit-positive', pp >= 0);
+      el.classList.toggle('profit-negative', pp < 0);
+      sumBox.classList.remove('hidden');
+    } else { sumBox.classList.add('hidden'); }
+  }
+
+  function run(){
+    const raw = Object.fromEntries(new FormData(form).entries());
+    const res = compute(raw);
+    updateUI(res);
+  }
+
+  fields.forEach(el=>{
+    el.addEventListener('input', run);
+    el.addEventListener('change', run);
+  });
+  diskonSelect.addEventListener('change', ()=>{
+    diskonFields.classList.toggle('hidden', diskonSelect.value!=='ya');
+    if(diskonSelect.value!=='ya'){ form.querySelector('input[name="diskon_produk_nilai"]').value=0; form.querySelector('input[name="voucher_toko_nilai"]').value=0; }
+    run();
+  });
+  liveSelect.addEventListener('change', ()=>{ liveFields.classList.toggle('hidden', liveSelect.value!=='ya'); run(); });
+  kategoriSelect.addEventListener('change', ()=>{
+    const isManual = kategoriSelect.value==='manual';
+    manualAdminContainer.classList.toggle('hidden', !isManual);
+    manualAdminInput.required = isManual;
+    run();
+  });
+
+  run();
+});
+</script>
+</body>
+</html>

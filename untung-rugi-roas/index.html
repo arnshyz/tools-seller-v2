@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kalkulator Untung Rugi Ads</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container py-4">
+    <h1 class="mb-3 text-center"><b>Kalkulator Untung Rugi Ads</b></h1>
+
+    <form id="profitLossForm" class="mx-auto" style="max-width: 760px;">
+      <img src="gambar.jpg" alt="Contoh Laporan Iklan" class="img-fluid mb-3 rounded shadow-sm">
+
+      <div class="form-group">
+        <label for="salesFromAds">Penjualan dari Iklan (Rp)</label>
+        <input type="text" id="salesFromAds" class="form-control" data-format="number" placeholder="contoh: 5.035.000" required>
+      </div>
+
+      <div class="form-group">
+        <label for="productsSold">Jumlah Produk Terjual</label>
+        <input type="number" id="productsSold" class="form-control" min="0" placeholder="contoh: 31" required>
+      </div>
+
+      <div class="form-group">
+        <label for="totalAdCost">Total Biaya Iklan (Rp)</label>
+        <input type="text" id="totalAdCost" class="form-control" data-format="number" placeholder="contoh: 480.809" required>
+      </div>
+
+      <div class="form-group">
+        <label for="adminFeePercentage">
+          Persentase Biaya Admin (%)
+          <a href="../Hitung Biaya Admin/index.html" target="_blank" rel="noopener" class="ml-1"> (Cara Hitung Biaya Admin)</a>
+        </label>
+        <input type="number" id="adminFeePercentage" class="form-control" min="0" step="0.01" placeholder="contoh: 13" required>
+      </div>
+
+      <div class="form-group">
+        <label for="productCost">
+          HPP Produk (Rp)
+          <a href="../Hitung HPP/index.html" target="_blank" rel="noopener" class="ml-1"> (Lihat Cara Hitung HPP)</a>
+        </label>
+        <input type="text" id="productCost" class="form-control" data-format="number" placeholder="contoh: 125.000" required>
+      </div>
+
+      <div class="d-flex gap-2 mb-3">
+        <button type="button" id="calculateButton" class="btn btn-primary">Hitung</button>
+        <button type="button" id="resetButton" class="btn btn-outline-secondary ml-2">Reset</button>
+        <button type="button" id="backButton" class="btn btn-link ml-auto" onclick="location.href='../index.html'">Kembali Ke Home</button>
+      </div>
+
+      <div id="result" class="result-box" style="display:none;">
+        <p><span id="roasValue" class="font-weight-bold"></span></p>
+        <p><span id="totalProfitLoss" class="font-weight-bold"></span></p>
+        <p id="profitPerProduct"></p>
+        <p id="conclusion"></p>
+      </div>
+
+      <ul class="small text-muted mt-3">
+        <li>Isi semua kolom sesuai laporan iklan. Jika tidak ada, isi 0.</li>
+        <li>Menemukan bug? Laporkan <a href="https://wa.me/62818404222?text=Saya mau melaporkan adanya bug atau kesalahan pada aplikasi Seller Tools" target="_blank" rel="noopener">di sini</a>.</li>
+      </ul>
+    </form>
+
+    <footer class="bg-light py-3 mt-5 rounded">
+      <div class="container text-center">
+        <hr>
+        <p class="mb-1">Copyright © 2024, made with ❤️ by AkayStudio</p>
+        <p class="mb-0">Saran & Masukan: <a href="https://wa.me/62818404222?text=Saya%20Mau%20memberikan%20Saran%20dan%20masukan%20untuk%20aplikasi%20Seller%20Tools%20nya" target="_blank" rel="noopener">kirim di sini</a></p>
+      </div>
+    </footer>
+
+
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

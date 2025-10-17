@@ -1,0 +1,7 @@
+body { max-width: 760px; margin: 24px auto; padding: 0 16px; }
+h1 { font-size: 1.75rem; margin-bottom: 1rem; }
+.form-buttons { display: flex; gap: 8px; margin: 8px 0 12px; }
+.result { margin-top: 12px; }
+.footer-menu { position: fixed; bottom: 0; left: 0; right: 0; background: #f8f9fa; border-top: 1px solid #dee2e6; }
+.footer-menu ul { margin: 0; padding: 8px 12px; display: flex; gap: 12px; overflow-x: auto; list-style: none; }
+.footer-menu a { white-space: nowrap; }

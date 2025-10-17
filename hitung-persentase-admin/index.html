@@ -1,0 +1,55 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cara Menghitung Biaya Admin Shopee</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1><b>Cara Menghitung Biaya Admin Shopee</b></h1>    
+    <form id="adminForm">
+    <p>Ambil Data dari Rincian Penjualan Seperti contoh di Bawah Ini </p>
+    <img src="https://kalkulatorseller.my.id/Hitung%20Biaya%20Admin/admin.jpg" width="500">
+
+        <div class="form-group">
+            <label for="hargaJual">Harga Jual (Rp):</label>
+            <input type="text" id="hargaJual" placeholder="Masukkan Nilai SubTotal Pesanan, contoh : 99500" required>
+        </div>
+        <div class="form-group">
+            <label for="biayaAdmin">Biaya Admin (Rp):</label>
+            <input type="text" id="biayaAdmin" placeholder="Masukkan Nilai Fees & Charges, contoh : 12578" required>
+        </div>
+
+        <div class="form-buttons">
+            <button type="button" id="hitungButton">Hitung</button>
+            <button type="reset" id="resetButton">Reset</button>
+        </div>
+
+        <!-- Hasil ditampilkan di sini -->
+        <div id="hasil" class="result"></div>
+
+        <!-- Tombol Back to Home -->
+        <button type="button" id="backButton" onclick="location.href='../index.html'">Back to Home</button>
+    </form>
+
+    <!-- Footer -->
+
+<!-- Footer -->
+
+    <footer class="bg-light py-3 mt-5">
+        <div class="container text-center">
+            <!-- Garis pemisah -->
+            <hr>
+            <p id="footer-text">Copyright © 2024, made with ❤️ by Akay Studio</p>
+            <p id="footer-text">Saran & Masukan Untuk Perkembangan Aplikasi yang lebih baik silahkan sampaikan ke 
+                <a href="https://wa.me/62818404222?text=Saya%20Mau%20memberikan%20Saran%20dan%20masukan%20untuk%20aplikasi%20Seller%20Tools%20nya">sini </p>
+        </div>
+    </footer>
+
+
+    <script src="script.js"></script>
+</body>
+</html>

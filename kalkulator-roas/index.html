@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Kalkulator ROAS Shopee — Client-only</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script>
+(function(){const d=document.documentElement;const t=localStorage.getItem('theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches)){d.classList.add('dark');}else{d.classList.remove('dark');}})();
+</script>
+<style>
+:root{--bg:#f8fafc;--bg-offset:#fff;--card-bg:#fff;--border:#e2e8f0;--text-main:#0f172a;--text-secondary:#64748b;--accent:#4f46e5;--accent-hover:#4338ca}
+html.dark{--bg:#0d121f;--bg-offset:#111827;--card-bg:#1e293b;--border:#334155;--text-main:#f1f5f9;--text-secondary:#94a3b8;--accent:#6366f1;--accent-hover:#818cf8}
+body{background:var(--bg);color:var(--text-secondary);font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial}
+.card{background:var(--card-bg);border:1px solid var(--border)}
+.main-text{color:var(--text-main)}.secondary-text{color:var(--text-secondary)}
+.input-field{background:var(--bg);border:1px solid var(--border);color:var(--text-main);border-radius:.375rem}
+.input-field:focus{outline:none;border-color:var(--accent)}
+.gauge-container{width:220px;height:110px;position:relative;overflow:hidden}
+.gauge-arc{position:absolute;top:0;left:0;width:100%;height:200%;border-radius:50%;border:25px solid;box-sizing:border-box;clip-path:polygon(0% 0%,100% 0%,100% 50%,0% 50%)}
+.gauge-needle{position:absolute;bottom:0;left:50%;width:2px;height:90px;background:var(--text-main);transform-origin:bottom center;transition:transform .8s cubic-bezier(.68,-.55,.27,1.55);border-radius:2px}
+.gauge-center-circle{position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);width:16px;height:16px;background:var(--text-main);border-radius:50%;border:4px solid var(--card-bg)}
+.gauge-label{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);font-weight:600;font-size:.875rem;text-align:center;width:120px}
+.summary-card{background:var(--bg);border:1px solid var(--border)}
+.simulation-table th{background:var(--bg-offset)}
+.simulation-table tr.highlight-bep{background:#fef9c3}.dark .simulation-table tr.highlight-bep{background:#713f1250}
+.simulation-table tr.highlight-reco{background:#dbeafe}.dark .simulation-table tr.highlight-reco{background:#1e3a8a50}
+.badge{display:inline-flex;align-items:center;gap:.375rem;font-weight:600;font-size:.75rem;padding:.125rem .5rem;border-radius:9999px;border:1px solid transparent}
+.badge-red{color:#991b1b;background:#fee2e2;border-color:#fecaca}.dark .badge-red{color:#fecaca;background:#7f1d1d50;border-color:#7f1d1d}
+.badge-amber{color:#92400e;background:#fffbeb;border-color:#fde68a}.dark .badge-amber{color:#fde68a;background:#78350f50;border-color:#78350f}
+.badge-green{color:#065f46;background:#ecfdf5;border-color:#a7f3d0}.dark .badge-green{color:#a7f3d0;background:#064e3b50;border-color:#065f46}
+</style>
+</head>
+<body class="antialiased">
+<header class="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-b border-gray-200 dark:border-slate-800">
+  <nav class="container mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-16">
+      <a href="#" class="text-2xl font-bold"><strong>Apps</strong>Lets</a>
+      <div class="hidden md:flex items-center gap-6 text-sm font-medium">
+        <a class="text-gray-600 dark:text-gray-300 hover:text-[var(--accent)]">Fitur</a>
+        <a class="text-gray-600 dark:text-gray-300 hover:text-[var(--accent)]">Aplikasi Gratis</a>
+      </div>
+      <div class="flex items-center gap-4">
+        <button id="themeToggle" class="text-sm font-semibold text-gray-600 dark:text-gray-300">Tema</button>
+      </div>
+    </div>
+  </nav>
+</header>
+
+<main>
+<div class="container mx-auto py-12 px-4">
+  <div class="text-center mb-10">
+    <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight">Kalkulator ROAS Iklan Shopee</h1>
+    <p class="mt-3 text-lg max-w-2xl mx-auto">Versi tanpa server. Semua perhitungan terjadi di browser.</p>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 max-w-7xl mx-auto">
+    <div class="lg:col-span-2">
+      <form id="calculator-form" class="card p-5 rounded-xl space-y-4 sticky top-20">
+        <h2 class="text-lg font-bold main-text">Input Data Produk</h2>
+
+        <div>
+          <label class="block text-xs font-medium secondary-text">Harga Jual (per unit)</label>
+          <div class="relative mt-1">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3">Rp</span>
+            <input type="number" name="harga_jual" min="1" required class="input-field block w-full rounded-lg text-sm p-2 pl-10" value="39500">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium secondary-text">Modal Produk (per unit)</label>
+          <div class="relative mt-1">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3">Rp</span>
+            <input type="number" name="modal_produk" min="0" required class="input-field block w-full rounded-lg text-sm p-2 pl-10" value="17000">
+          </div>
+        </div>
+
+        <div class="space-y-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <h3 class="text-base font-semibold main-text">Rincian Biaya Layanan</h3>
+
+          <div>
+            <label class="block text-xs font-medium secondary-text">Kategori Produk</label>
+            <select name="kategori" id="kategori" class="input-field mt-1 block w-full text-sm p-2">
+              <option value="C" selected>Kategori C — Admin 5.75%</option>
+              <option value="B">Kategori B — Admin 8%</option>
+              <option value="A">Kategori A — Admin 8%</option>
+              <option value="manual">Lainnya (Input Manual)</option>
+            </select>
+          </div>
+
+          <div id="persen-admin-manual-container" class="hidden">
+            <label class="block text-xs font-medium secondary-text">Biaya Admin Manual (%)</label>
+            <input type="number" step="0.01" name="persen_admin_manual" class="input-field w-full text-sm p-2" value="5.75">
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-medium secondary-text">% GO XTRA</label>
+              <input type="number" step="0.01" name="persen_go_xtra" class="input-field w-full text-sm p-2" value="0">
+            </div>
+            <div>
+              <label class="block text-xs font-medium secondary-text">% Promo XTRA</label>
+              <input type="number" step="0.01" name="persen_promo_xtra" class="input-field w-full text-sm p-2" value="0">
+            </div>
+            <div>
+              <label class="block text-xs font-medium secondary-text">% Live XTRA</label>
+              <input type="number" step="0.01" name="persen_live_xtra" class="input-field w-full text-sm p-2" value="0">
+            </div>
+            <div>
+              <label class="block text-xs font-medium secondary-text">Biaya Proses Pesanan (Rp)</label>
+              <input type="number" name="biaya_proses" class="input-field w-full text-sm p-2" value="1250">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3 pt-2">
+            <div>
+              <label class="block text-xs font-medium secondary-text">Target Profit Bersih (%)</label>
+              <input type="number" step="0.01" name="target_profit_pct" class="input-field w-full text-sm p-2" value="10">
+            </div>
+            <div>
+              <label class="block text-xs font-medium secondary-text">Target Order/Hari</label>
+              <input type="number" name="order_per_hari" class="input-field w-full text-sm p-2" value="10">
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <div class="lg:col-span-3">
+      <div id="result-area" class="space-y-4">
+        <div id="result-placeholder" class="card p-6 rounded-xl text-center h-full flex flex-col justify-center items-center">
+          <i class="fa-solid fa-lightbulb text-4xl text-yellow-400 mb-4"></i>
+          <h3 class="font-bold main-text">Hasil Analisa Anda</h3>
+          <p class="text-sm secondary-text mt-2">Isi data untuk melihat rekomendasi ROAS dan simulasi profit.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-12 text-center p-8 bg-gray-100 dark:bg-gray-800 rounded-lg border border-[var(--border)]">
+    <p class="font-semibold text-gray-500">Area Iklan Google AdSense</p>
+  </div>
+</div>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const $ = (s, p=document) => p.querySelector(s);
+  const $$ = (s, p=document) => [...p.querySelectorAll(s)];
+  const ui = {
+    form: $('#calculator-form'),
+    area: $('#result-area'),
+    placeholder: $('#result-placeholder').cloneNode(true),
+    kategori: $('#kategori'),
+    adminManual: $('#persen-admin-manual-container'),
+    themeToggle: $('#themeToggle')
+  };
+
+  ui.themeToggle.addEventListener('click', () => {
+    const d=document.documentElement;
+    const isDark=d.classList.toggle('dark');
+    localStorage.setItem('theme', isDark?'dark':'light');
+  });
+
+  const formatRp = v => new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',minimumFractionDigits:0}).format(Math.round(v||0));
+
+  function getPercentAdmin(kat, manualVal){
+    if(kat==='C') return 5.75;
+    if(kat==='B') return 8.0;
+    if(kat==='A') return 8.0;
+    return parseFloat(manualVal||0);
+  }
+
+  function compute(data){
+    const harga = +data.harga_jual;
+    const modal = +data.modal_produk;
+    const p_admin = getPercentAdmin(data.kategori, data.persen_admin_manual);
+    const p_go = +data.persen_go_xtra || 0;
+    const p_promo = +data.persen_promo_xtra || 0;
+    const p_live = +data.persen_live_xtra || 0;
+    const fee_fix = +data.biaya_proses || 0;
+
+    const fee_admin = harga * p_admin/100;
+    const fee_go = harga * p_go/100;
+    const fee_promo = harga * p_promo/100;
+    const fee_live = harga * p_live/100;
+
+    const profit_kotor = harga - modal - fee_admin - fee_go - fee_promo - fee_live - fee_fix;
+
+    let roas_bep = 'Rugi';
+    if (profit_kotor > 0) {
+      roas_bep = (harga / profit_kotor).toFixed(1);
+    }
+
+    const target_margin_pct = (+data.target_profit_pct||10)/100;
+    const target_profit_unit = harga * target_margin_pct;
+    let roas_rekomendasi = 'N/A';
+    const ad_budget_target = profit_kotor - target_profit_unit;
+    if (ad_budget_target > 0) {
+      roas_rekomendasi = (harga / ad_budget_target).toFixed(1);
+    }
+
+    const orders = Math.max(0, +data.order_per_hari||0);
+    const biaya_per_unit = modal + fee_admin + fee_go + fee_promo + fee_live + fee_fix;
+    const estimasi_modal_harian = biaya_per_unit * orders;
+
+    const proyeksi_profit = target_profit_unit; // target profit/unit
+
+    const roasList = [50, 30, 25, 20, 15, 12, 10, 8, 6, 5, 4, 3, 2];
+    const simulasi = roasList.map(r => {
+      const ad_cost = harga / r;
+      const profit = profit_kotor - ad_cost;
+      const profit_pct = (profit / harga) * 100;
+      return { roas: r, profit, profit_pct };
+    });
+
+    return { roas_bep, roas_rekomendasi, estimasi_modal_harian, proyeksi_profit, simulasi, rincian_per_unit: {
+      harga_jual: harga,
+      modal_produk: modal,
+      biaya_admin_shopee: fee_admin, persen_admin_shopee: p_admin,
+      biaya_go_xtra: fee_go, persen_go_xtra: p_go,
+      biaya_promo_xtra: fee_promo, persen_promo_xtra: p_promo,
+      biaya_live_xtra: fee_live, persen_live_xtra: p_live,
+      biaya_proses_pesanan: fee_fix,
+      profit_kotor_sebelum_iklan: profit_kotor
+    }};
+  }
+
+  function statusFrom(roas, profit, bep, reco){
+    const r = +roas;
+    const b = parseFloat(bep);
+    const rc = parseFloat(reco);
+    if (profit < 0 || isFinite(b) && r < b) return 'Rugi';
+    if (isFinite(rc) && r < rc) return 'Profit Tipis';
+    return 'Sesuai Target';
+  }
+  const badge = s => s==='Rugi' ? '<span class="badge badge-red"><i class="fa-solid fa-triangle-exclamation"></i> Rugi</span>' :
+                   s==='Profit Tipis' ? '<span class="badge badge-amber"><i class="fa-solid fa-scale-balanced"></i> Profit Tipis</span>' :
+                   '<span class="badge badge-green"><i class="fa-solid fa-circle-check"></i> Sesuai Target</span>';
+
+  function render(data){
+    const { roas_rekomendasi, roas_bep, estimasi_modal_harian, proyeksi_profit, simulasi, rincian_per_unit } = data;
+    const tpl = `
+      <div class="card p-6 rounded-xl">
+        <h3 class="text-lg font-bold main-text text-center">Rekomendasi Target ROAS</h3>
+        <p class="text-7xl font-extrabold main-text text-center my-4">${roas_rekomendasi}</p>
+        <div class="flex justify-center relative">
+          <div class="gauge-container">
+            <div class="gauge-arc" style="border-color:#ef4444;transform:rotate(180deg)"></div>
+            <div class="gauge-arc" style="border-color:#f59e0b;transform:rotate(270deg)"></div>
+            <div class="gauge-arc" style="border-color:#22c55e;transform:rotate(315deg)"></div>
+            <div class="gauge-needle" id="gauge-needle"></div>
+            <div class="gauge-center-circle"></div>
+          </div>
+          <p id="gauge-label" class="gauge-label"></p>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="summary-card p-4 rounded-lg text-center"><p class="text-xs font-medium secondary-text">Proyeksi Profit (target) / unit</p><p class="text-xl font-bold main-text mt-1">${formatRp(proyeksi_profit)}</p></div>
+        <div class="summary-card p-4 rounded-lg text-center"><p class="text-xs font-medium secondary-text">Titik Impas (BEP)</p><p class="text-xl font-bold main-text mt-1">${roas_bep}</p></div>
+        <div class="summary-card p-4 rounded-lg text-center"><p class="text-xs font-medium secondary-text">Modal Harian (estimasi)</p><p class="text-xl font-bold main-text mt-1">${formatRp(estimasi_modal_harian)}</p></div>
+      </div>
+      <div class="card p-4 rounded-xl">
+        <button id="toggle-unit-details-btn" class="w-full text-left font-semibold main-text flex justify-between items-center"><span>Rincian Analisa Per Unit</span><i class="fa-solid fa-chevron-down transition-transform"></i></button>
+        <div id="unit-details-container" class="hidden mt-4 text-sm secondary-text">
+          <div class="grid grid-cols-2 gap-2">
+            <p class="font-semibold main-text">Harga Jual</p><p class="text-right">${formatRp(rincian_per_unit.harga_jual)}</p>
+            <p>(-) Modal Produk</p><p class="text-right">- ${formatRp(rincian_per_unit.modal_produk)}</p>
+            <p>(-) Biaya Admin Shopee</p><p class="text-right">- ${formatRp(rincian_per_unit.biaya_admin_shopee)} (${rincian_per_unit.persen_admin_shopee.toFixed(2)}%)</p>
+            <p>(-) Biaya Program GO XTRA</p><p class="text-right">- ${formatRp(rincian_per_unit.biaya_go_xtra)} (${rincian_per_unit.persen_go_xtra.toFixed(2)}%)</p>
+            <p>(-) Biaya Program Promo XTRA</p><p class="text-right">- ${formatRp(rincian_per_unit.biaya_promo_xtra)} (${rincian_per_unit.persen_promo_xtra.toFixed(2)}%)</p>
+            <p>(-) Biaya Penjualan Live</p><p class="text-right">- ${formatRp(rincian_per_unit.biaya_live_xtra)} (${rincian_per_unit.persen_live_xtra.toFixed(2)}%)</p>
+            <p>(-) Biaya Proses Pesanan</p><p class="text-right">- ${formatRp(rincian_per_unit.biaya_proses_pesanan)}</p>
+            <p class="font-semibold main-text border-t pt-2 mt-2">(=) Profit Kotor (sblm Iklan)</p><p class="text-right font-semibold main-text border-t pt-2 mt-2">${formatRp(rincian_per_unit.profit_kotor_sebelum_iklan)}</p>
+          </div>
+        </div>
+      </div>
+      <div class="card p-4 rounded-xl">
+        <button id="toggle-simulation-btn" class="w-full text-left font-semibold main-text flex justify-between items-center"><span>Lihat Tabel Simulasi Lengkap</span><i class="fa-solid fa-chevron-down transition-transform"></i></button>
+        <div id="simulation-table-container" class="hidden mt-4 overflow-x-auto">
+          <table class="w-full text-xs simulation-table">
+            <thead><tr class="text-left"><th class="p-2">ROAS</th><th class="p-2 text-right">Profit/Unit</th><th class="p-2 text-right">Profit %</th><th class="p-2">Status</th></tr></thead>
+            <tbody id="simulation-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+    `;
+    ui.area.innerHTML = tpl;
+
+    const tbody = $('#simulation-table-body');
+    const bepNum = parseFloat(roas_bep);
+    const recoNum = parseFloat(roas_rekomendasi);
+    tbody.innerHTML = data.simulasi.map(d => {
+      const profitClass = d.profit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400';
+      let rowClass = '';
+      if (!isNaN(recoNum) && Math.abs(d.roas - recoNum) < 0.1) rowClass = 'highlight-reco';
+      if (!isNaN(bepNum) && Math.abs(d.roas - bepNum) < 0.1) rowClass = 'highlight-bep';
+      const status = statusFrom(d.roas, d.profit, roas_bep, roas_rekomendasi);
+      return `<tr class="\${rowClass}"><td class="p-2 font-semibold">\${d.roas.toFixed(1)}</td><td class="p-2 text-right font-mono \${profitClass}">\${formatRp(d.profit)}</td><td class="p-2 text-right font-mono \${profitClass}">\${d.profit_pct.toFixed(2)}%</td><td class="p-2">\${badge(status)}</td></tr>`;
+    }).join('');
+
+    const needle = $('#gauge-needle');
+    const label = $('#gauge-label');
+    let angle=-90, txt='Rugi'; label.style.color='#ef4444';
+    if (roas_bep!=='Rugi' && roas_rekomendasi!=='N/A'){
+      const bep = parseFloat(roas_bep); const reco = parseFloat(roas_rekomendasi);
+      const thr = bep * 1.5;
+      if (reco < bep){ angle = (reco/bep)*60 - 90; txt='Rugi Besar'; }
+      else if (reco < thr){ angle = ((reco-bep)/(thr-bep))*45 - 30; txt='Profit Tipis'; label.style.color='#f59e0b'; }
+      else { angle = Math.min(((reco-thr)/(50-thr))*75 + 15, 90); txt='Sangat Profit!'; label.style.color='#22c55e'; }
+    }
+    needle.style.transform = `rotate(\${angle}deg)`;
+    label.textContent = txt;
+
+    $('#result-area').addEventListener('click', e => {
+      const t1 = e.target.closest('#toggle-simulation-btn');
+      if (t1){ $('#simulation-table-container').classList.toggle('hidden'); t1.querySelector('i').classList.toggle('rotate-180'); }
+      const t2 = e.target.closest('#toggle-unit-details-btn');
+      if (t2){ $('#unit-details-container').classList.toggle('hidden'); t2.querySelector('i').classList.toggle('rotate-180'); }
+    });
+  }
+
+  function run(){
+    const fd = new FormData(ui.form);
+    const data = Object.fromEntries(fd.entries());
+    if (!data.harga_jual || !data.modal_produk || +data.harga_jual <= 0){
+      ui.area.innerHTML=''; ui.area.appendChild(ui.placeholder); return;
+    }
+    const result = compute(data);
+    render(result);
+  }
+
+  ui.kategori.addEventListener('change', () => {
+    ui.adminManual.classList.toggle('hidden', ui.kategori.value!=='manual');
+  });
+
+  $$('#calculator-form input, #calculator-form select').forEach(el => {
+    el.addEventListener('input', run);
+    el.addEventListener('change', run);
+  });
+
+  run();
+});
+</script>
+</body>
+</html>

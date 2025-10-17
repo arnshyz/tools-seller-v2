@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kalkulator Harga Pokok Penjualan (HPP)</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container py-4">
+    <h1 class="mb-3 text-center"><b>Kalkulator Harga Pokok Penjualan (HPP)</b></h1>
+
+    <form id="hppForm" class="mx-auto" style="max-width: 760px;">
+      <div class="form-group">
+        <label for="biayaProduksi">Total Biaya Dasar (Rp) :</label>
+        <input type="text" id="biayaProduksi" class="form-control" data-format="number" placeholder="Total biaya pembelian/bahan/produksi selama 1 bulan" required>
+      </div>
+      <div class="form-group">
+        <label for="gajiKaryawan">Gaji Karyawan (Rp):</label>
+        <input type="text" id="gajiKaryawan" class="form-control" data-format="number" placeholder="Total gaji karyawan selama 1 bulan" required>
+      </div>
+      <div class="form-group">
+        <label for="biayaLainnya">Biaya Lainnya (Rp):</label>
+        <input type="text" id="biayaLainnya" class="form-control" data-format="number" placeholder="Listrik, air, packing, transport, dll (1 bulan)" required>
+      </div>
+      <div class="form-group">
+        <label for="jumlahProduk">Jumlah Produk :</label>
+        <input type="number" id="jumlahProduk" class="form-control" placeholder="Jumlah total produk dihasilkan (1 bulan)" required min="1">
+      </div>
+      <div class="d-flex gap-2 mb-3">
+        <button type="button" id="hitungButton" class="btn btn-primary">Hitung HPP</button>
+        <button type="reset" id="resetButton" class="btn btn-outline-secondary ml-2">Reset</button>
+        <button type="button" id="backButton" class="btn btn-link ml-auto" onclick="location.href='../index.html'">Kembali Ke Home</button>
+      </div>
+
+      <div id="hasil" class="result-box" style="display:none;">
+        <p class="mb-1"><strong>Total Biaya:</strong> <span id="totalBiaya"></span></p>
+        <p class="mb-1"><strong>Jumlah Produk:</strong> <span id="outJumlah"></span></p>
+        <hr>
+        <p class="lead"><strong>HPP per Unit:</strong> <span id="hppPerUnit"></span></p>
+        <details class="mt-2">
+          <summary>Rincian</summary>
+          <ul class="small mb-0">
+            <li>Biaya Dasar: <span id="rBiayaDasar"></span></li>
+            <li>Gaji Karyawan: <span id="rGaji"></span></li>
+            <li>Biaya Lainnya: <span id="rLain"></span></li>
+          </ul>
+        </details>
+      </div>
+
+      <p class="small text-muted mt-3">
+        Menemukan bug atau salah hitung? Laporkan
+        <a href="https://wa.me/62818404222?text=Saya mau melaporkan adanya bug atau kesalahan pada aplikasi Seller Tools" target="_blank" rel="noopener">di sini</a>.
+      </p>
+    </form>
+
+    <footer class="bg-light py-3 mt-5 rounded">
+      <div class="container text-center">
+        <hr>
+        <p class="mb-1">Copyright © 2024, made with ❤️ by Akay Studio</p>
+        <p class="mb-0">Saran & Masukan:
+          <a href="https://wa.me/62818404222?text=Saya%20Mau%20memberikan%20Saran%20dan%20masukan%20untuk%20aplikasi%20Seller%20Tools%20nya" target="_blank" rel="noopener">kirim di sini</a>
+        </p>
+      </div>
+    </footer>
+
+
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
