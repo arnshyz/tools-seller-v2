@@ -270,6 +270,44 @@
           </div>
           <p id="licenseFeedback" class="text-sm font-medium text-cyan-300"></p>
         </form>
+        <div class="mt-10 space-y-4">
+          <h3 class="text-lg font-semibold text-slate-100">Opsi Durasi Lisensi</h3>
+          <p class="text-sm text-slate-400">Pilih paket sesuai kebutuhan. Masukkan kode di atas untuk mengaktifkan akses.</p>
+          <div class="grid gap-4 sm:grid-cols-2">
+            <article class="rounded-2xl border border-cyan-500/40 bg-cyan-500/10 p-4">
+              <div class="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-cyan-200">
+                <span>7 Hari</span>
+                <span>Trial lanjutan</span>
+              </div>
+              <p class="mt-2 text-base font-semibold text-slate-100">AKAY-7HARI</p>
+              <p class="mt-1 text-xs text-slate-300">Akses penuh selama satu minggu untuk validasi fitur.</p>
+            </article>
+            <article class="rounded-2xl border border-slate-800/70 bg-slate-900/60 p-4">
+              <div class="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-cyan-200">
+                <span>1 Bulan</span>
+                <span>Paling populer</span>
+              </div>
+              <p class="mt-2 text-base font-semibold text-slate-100">AKAY-1BULAN</p>
+              <p class="mt-1 text-xs text-slate-300">Ideal untuk mengukur performa kampanye penjualan bulanan.</p>
+            </article>
+            <article class="rounded-2xl border border-slate-800/70 bg-slate-900/60 p-4">
+              <div class="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-cyan-200">
+                <span>6 Bulan</span>
+                <span>Hemat</span>
+              </div>
+              <p class="mt-2 text-base font-semibold text-slate-100">AKAY-6BULAN</p>
+              <p class="mt-1 text-xs text-slate-300">Lindungi pertumbuhan semester dengan akses stabil dan terjaga.</p>
+            </article>
+            <article class="rounded-2xl border border-slate-800/70 bg-slate-900/60 p-4">
+              <div class="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-cyan-200">
+                <span>1 Tahun</span>
+                <span>Paling lengkap</span>
+              </div>
+              <p class="mt-2 text-base font-semibold text-slate-100">AKAY-1TAHUN</p>
+              <p class="mt-1 text-xs text-slate-300">Kontrol seluruh kalkulator sepanjang tahun dengan update rutin.</p>
+            </article>
+          </div>
+        </div>
       </div>
       <div class="space-y-6">
         <div class="rounded-3xl border border-slate-800/60 bg-slate-900/60 p-6">
@@ -300,7 +338,7 @@
             </div>
             <div>
               <dt class="font-semibold text-slate-200">Berapa lama lisensi berlaku?</dt>
-              <dd class="mt-1 text-slate-400">Lisensi reguler berlaku satu tahun dan dapat diperpanjang kapan saja.</dd>
+              <dd class="mt-1 text-slate-400">Tersedia paket 7 hari, 1 bulan, 6 bulan, hingga 1 tahun. Setelah masa aktif berakhir cukup masukkan kode baru.</dd>
             </div>
             <div>
               <dt class="font-semibold text-slate-200">Bisakah digunakan oleh tim?</dt>
@@ -402,15 +440,16 @@
       }
 
       expirySection.classList.remove('hidden');
+      const planName = detail.planLabel || 'Lisensi';
       const exactText = formatDateTime(detail.expiresAt);
-      expiryExact.textContent = exactText ? `Berakhir pada ${exactText}` : 'Berakhir segera';
+      expiryExact.textContent = exactText ? `${planName} berakhir pada ${exactText}` : `${planName} berakhir segera`;
 
       const remaining = detail.expiresAt - Date.now();
       if (remaining <= 0) {
-        expiryCountdown.textContent = 'Lisensi trial telah kedaluwarsa.';
+        expiryCountdown.textContent = 'Lisensi telah kedaluwarsa.';
         const feedback = document.getElementById('licenseFeedback');
         if (feedback) {
-          feedback.textContent = 'Lisensi trial telah kedaluwarsa. Masukkan kode baru untuk melanjutkan.';
+          feedback.textContent = 'Lisensi telah kedaluwarsa. Masukkan kode baru untuk melanjutkan.';
           feedback.classList.remove('text-cyan-300');
           feedback.classList.add('text-rose-300');
         }
@@ -445,7 +484,8 @@
       const cards = document.querySelectorAll('[data-tool-card]');
       const requiresLicense = document.querySelectorAll('[data-requires-license]');
 
-      badge.textContent = active ? (detail.isTrial ? 'Trial Aktif' : 'Aktif') : 'Belum Aktif';
+      const badgeLabel = detail.badgeLabel || (detail.isTrial ? 'Trial Aktif' : 'Aktif');
+      badge.textContent = active ? badgeLabel : 'Belum Aktif';
       statusText.textContent = active ? 'Terbuka' : 'Terkunci';
 
       cards.forEach(card => {
@@ -473,7 +513,12 @@
 
       if (feedback) {
         if (active) {
-          feedback.textContent = `Lisensi aktif: ${code || 'Tidak diketahui'}${detail.isTrial ? ' (Trial)' : ''}`;
+          const planDisplay = detail.planLabel || code || 'Tidak diketahui';
+          const durationSuffix = detail.durationLabel && (!planDisplay.toLowerCase().includes(detail.durationLabel.toLowerCase()))
+            ? ` · ${detail.durationLabel}`
+            : '';
+          const codeSuffix = code && planDisplay !== code ? ` (${code})` : '';
+          feedback.textContent = `Lisensi aktif: ${planDisplay}${durationSuffix}${codeSuffix}`;
           feedback.classList.remove('text-rose-300');
           feedback.classList.add('text-cyan-300');
         } else if (!feedback.textContent) {

@@ -1,16 +1,110 @@
-// Minimal client-side license module with localStorage.
+// Minimal client-side license module dengan penyimpanan localStorage.
 (function(){
   const LS_ACTIVE_KEY = 'seller_license_active_code';
   const LS_ACTIVE_META_KEY = 'seller_license_active_meta';
   const LS_CATALOG_KEY = 'seller_license_catalog';
   const LS_USED_CODES_KEY = 'seller_license_used_codes';
   const LS_TRIAL_USED_KEY = 'seller_license_trial_consumed';
+
+  const MS = {
+    MINUTE: 60 * 1000,
+    DAY: 24 * 60 * 60 * 1000
+  };
+
   const TRIAL_CODE = 'COBADULU';
-  const LEGACY_TRIAL_CODES = ['SELLER-TRIAL-7'];
-  const TRIAL_DURATION_MS = 1 * 60 * 1000; // 1 menit
-  const DEFAULT_CODES = [TRIAL_CODE,'SELLER TOOLS PRO 2025','SELLERPRO-2025'];
+  const TRIAL_DURATION_MS = 1 * MS.MINUTE; // 1 menit
+
+  const LICENSE_VARIANTS = [
+    {
+      code: TRIAL_CODE,
+      type: 'trial',
+      label: 'Trial 1 Menit',
+      badgeLabel: 'Trial Aktif',
+      durationLabel: '1 Menit',
+      durationMs: TRIAL_DURATION_MS,
+      default: true
+    },
+    {
+      code: 'AKAY-7HARI',
+      type: 'paid',
+      label: 'Lisensi 7 Hari',
+      badgeLabel: 'Aktif (7 Hari)',
+      durationLabel: '7 Hari',
+      durationMs: 7 * MS.DAY,
+      default: true
+    },
+    {
+      code: 'AKAY-1BULAN',
+      type: 'paid',
+      label: 'Lisensi 1 Bulan',
+      badgeLabel: 'Aktif (1 Bulan)',
+      durationLabel: '1 Bulan',
+      durationMs: 30 * MS.DAY,
+      default: true
+    },
+    {
+      code: 'AKAY-6BULAN',
+      type: 'paid',
+      label: 'Lisensi 6 Bulan',
+      badgeLabel: 'Aktif (6 Bulan)',
+      durationLabel: '6 Bulan',
+      durationMs: 180 * MS.DAY,
+      default: true
+    },
+    {
+      code: 'AKAY-1TAHUN',
+      type: 'paid',
+      label: 'Lisensi 1 Tahun',
+      badgeLabel: 'Aktif (1 Tahun)',
+      durationLabel: '1 Tahun',
+      durationMs: 365 * MS.DAY,
+      default: true
+    },
+    {
+      code: 'SELLER TOOLS PRO 2025',
+      type: 'paid',
+      label: 'Lisensi Premium 2025',
+      badgeLabel: 'Aktif',
+      durationLabel: null,
+      durationMs: null,
+      default: true
+    },
+    {
+      code: 'SELLERPRO-2025',
+      type: 'paid',
+      label: 'Lisensi Pro 2025',
+      badgeLabel: 'Aktif',
+      durationLabel: null,
+      durationMs: null,
+      default: true
+    },
+    {
+      code: 'SELLER-TRIAL-7',
+      type: 'trial',
+      label: 'Trial 7 Hari',
+      badgeLabel: 'Trial Aktif',
+      durationLabel: '7 Hari',
+      durationMs: 7 * MS.DAY,
+      default: false
+    }
+  ];
+
+  const LICENSE_DEFINITIONS = LICENSE_VARIANTS.reduce((acc, def) => {
+    acc[def.code] = def;
+    return acc;
+  }, {});
+
+  const DEFAULT_CODES = LICENSE_VARIANTS.filter(def => def.default).map(def => def.code);
+  const LEGACY_TRIAL_CODES = LICENSE_VARIANTS.filter(def => def.type === 'trial' && !def.default).map(def => def.code);
+
+  function getLicenseDefinition(code){
+    if(!code) return null;
+    return LICENSE_DEFINITIONS[String(code)] || null;
+  }
 
   function isTrialCode(code){
+    const def = getLicenseDefinition(code);
+    if(def) return def.type === 'trial';
     return [TRIAL_CODE, ...LEGACY_TRIAL_CODES].includes(code);
   }
 
@@ -48,17 +142,26 @@
     localStorage.setItem(LS_TRIAL_USED_KEY, '1');
   }
 
+  function clearActiveState(){
+    localStorage.removeItem(LS_ACTIVE_KEY);
+    localStorage.removeItem(LS_ACTIVE_META_KEY);
+  }
+
   function readActiveState(){
     const code = localStorage.getItem(LS_ACTIVE_KEY);
     if(!code) return null;
 
     let activatedAt = null;
+    let metaPayload = null;
     try {
       const raw = localStorage.getItem(LS_ACTIVE_META_KEY);
       if(raw){
         const meta = JSON.parse(raw);
-        if(meta && meta.code === code && typeof meta.activatedAt === 'number'){
-          activatedAt = meta.activatedAt;
+        if(meta && meta.code === code){
+          if(typeof meta.activatedAt === 'number'){
+            activatedAt = meta.activatedAt;
+          }
+          metaPayload = meta;
         }
       }
     } catch(e) {
@@ -66,17 +169,24 @@
     }
 
     markCodeUsed(code);
-    if(isTrialCode(code)){
-      if(!hasUsedTrial()){
-        markTrialUsed();
-      }
-      if(!activatedAt){
-        activatedAt = Date.now();
-        localStorage.setItem(LS_ACTIVE_META_KEY, JSON.stringify({code, activatedAt}));
-      }
-      if(Date.now() - activatedAt > TRIAL_DURATION_MS){
-        localStorage.removeItem(LS_ACTIVE_KEY);
-        localStorage.removeItem(LS_ACTIVE_META_KEY);
+    const def = getLicenseDefinition(code);
+
+    if(isTrialCode(code) && !hasUsedTrial()){
+      markTrialUsed();
+    }
+
+    const needsActivationTimestamp = def && typeof def.durationMs === 'number' && def.durationMs > 0;
+
+    if(needsActivationTimestamp && !activatedAt){
+      activatedAt = Date.now();
+      const nextMeta = Object.assign({}, metaPayload || {}, {code, activatedAt});
+      localStorage.setItem(LS_ACTIVE_META_KEY, JSON.stringify(nextMeta));
+    }
+
+    if(needsActivationTimestamp && activatedAt){
+      const expiresAt = activatedAt + def.durationMs;
+      if(Date.now() >= expiresAt){
+        clearActiveState();
         return null;
       }
     }
@@ -85,8 +195,8 @@
   }
 
   function persistActiveState(code){
-    localStorage.setItem(LS_ACTIVE_KEY, code);
     const activatedAt = Date.now();
+    localStorage.setItem(LS_ACTIVE_KEY, code);
     localStorage.setItem(LS_ACTIVE_META_KEY, JSON.stringify({code, activatedAt}));
     markCodeUsed(code);
     if(isTrialCode(code)){
@@ -119,15 +229,19 @@
         activatedAt:null,
         expiresAt:null,
         remainingMs:0,
-        isTrial:false
+        isTrial:false,
+        planLabel:null,
+        badgeLabel:null,
+        durationLabel:null
       };
     }
     const {code, activatedAt} = state;
+    const def = getLicenseDefinition(code);
     const trial = isTrialCode(code);
     let expiresAt = null;
     let remainingMs = null;
-    if(trial && activatedAt){
-      expiresAt = activatedAt + TRIAL_DURATION_MS;
+    if(def && typeof def.durationMs === 'number' && def.durationMs > 0 && activatedAt){
+      expiresAt = activatedAt + def.durationMs;
       remainingMs = Math.max(0, expiresAt - Date.now());
     }
     return {
@@ -136,23 +250,21 @@
       activatedAt:activatedAt || null,
       expiresAt,
       remainingMs,
-      isTrial:trial
+      isTrial:trial,
+      planLabel: def ? def.label : null,
+      badgeLabel: def ? def.badgeLabel : null,
+      durationLabel: def ? def.durationLabel : null
     };
+  }
+
+  function evaluateState(){
+    return readActiveState();
   }
 
   function broadcastStatus(){
     const detail = buildStatusDetail(evaluateState());
     document.dispatchEvent(new CustomEvent('seller-license-status',{detail}));
     return detail;
-  }
-
-  function clearActiveState(){
-    localStorage.removeItem(LS_ACTIVE_KEY);
-    localStorage.removeItem(LS_ACTIVE_META_KEY);
-  }
-
-  function evaluateState(){
-    return readActiveState();
   }
 
   const api = {
