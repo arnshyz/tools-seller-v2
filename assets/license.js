@@ -1,8 +1,55 @@
 // Minimal client-side license module with localStorage.
 (function(){
   const LS_ACTIVE_KEY = 'seller_license_active_code';
+  const LS_ACTIVE_META_KEY = 'seller_license_active_meta';
   const LS_CATALOG_KEY = 'seller_license_catalog';
-  const DEFAULT_CODES = ['SELLER-TRIAL-7','SELLER TOOLS PRO 2025','SELLERPRO-2025'];
+  const TRIAL_CODE = 'SELLER-TRIAL-1';
+  const LEGACY_TRIAL_CODES = ['SELLER-TRIAL-7'];
+  const TRIAL_DURATION_MS = 24 * 60 * 60 * 1000; // 1 hari
+  const DEFAULT_CODES = [TRIAL_CODE,'SELLER TOOLS PRO 2025','SELLERPRO-2025'];
+
+  function isTrialCode(code){
+    return [TRIAL_CODE, ...LEGACY_TRIAL_CODES].includes(code);
+  }
+
+  function readActiveState(){
+    const code = localStorage.getItem(LS_ACTIVE_KEY);
+    if(!code) return null;
+
+    let activatedAt = null;
+    try {
+      const raw = localStorage.getItem(LS_ACTIVE_META_KEY);
+      if(raw){
+        const meta = JSON.parse(raw);
+        if(meta && meta.code === code && typeof meta.activatedAt === 'number'){
+          activatedAt = meta.activatedAt;
+        }
+      }
+    } catch(e) {
+      // abaikan parsing error dan perlakukan seperti tanpa metadata
+    }
+
+    if(isTrialCode(code)){
+      if(!activatedAt){
+        activatedAt = Date.now();
+        localStorage.setItem(LS_ACTIVE_META_KEY, JSON.stringify({code, activatedAt}));
+      }
+      if(Date.now() - activatedAt > TRIAL_DURATION_MS){
+        localStorage.removeItem(LS_ACTIVE_KEY);
+        localStorage.removeItem(LS_ACTIVE_META_KEY);
+        dispatch(false, null);
+        return null;
+      }
+    }
+
+    return {code, activatedAt};
+  }
+
+  function persistActiveState(code){
+    localStorage.setItem(LS_ACTIVE_KEY, code);
+    const activatedAt = Date.now();
+    localStorage.setItem(LS_ACTIVE_META_KEY, JSON.stringify({code, activatedAt}));
+  }
 
   function getCatalog(){
     try{
@@ -24,22 +71,36 @@
     document.dispatchEvent(new CustomEvent('seller-license-status',{detail:{active, code}}));
   }
 
+  function clearActiveState(){
+    localStorage.removeItem(LS_ACTIVE_KEY);
+    localStorage.removeItem(LS_ACTIVE_META_KEY);
+  }
+
+  function evaluateState(){
+    return readActiveState();
+  }
+
   const api = {
     activate(code){
       const c = normalize(code);
       if(!c) return {ok:false, message:'Masukkan kode lisensi.'};
       if(!getCatalog().includes(c)) return {ok:false, message:'Kode lisensi tidak dikenal.'};
-      localStorage.setItem(LS_ACTIVE_KEY, c);
+      persistActiveState(c);
       dispatch(true, c);
       return {ok:true, code:c};
     },
     deactivate(){
-      localStorage.removeItem(LS_ACTIVE_KEY);
+      clearActiveState();
       dispatch(false, null);
       return {ok:true};
     },
-    isActive(){ return !!localStorage.getItem(LS_ACTIVE_KEY); },
-    getCode(){ return localStorage.getItem(LS_ACTIVE_KEY) || null; },
+    isActive(){
+      return !!evaluateState();
+    },
+    getCode(){
+      const state = evaluateState();
+      return state ? state.code : null;
+    },
     importCatalog(input, opts){
       try{
         let list=[];
