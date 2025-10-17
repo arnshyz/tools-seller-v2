@@ -1,33 +1,401 @@
 <!DOCTYPE html>
-<!-- file generated -->
-<!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="scroll-smooth">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Aplikasi Seller Tools</title>
+  <title>Seller Tools Suite</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    body::before {
+    :root {
+      color-scheme: dark;
+    }
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #030712;
+      color: #e2e8f0;
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+    body::before,
+    body::after {
       content: "";
       position: fixed;
       inset: 0;
-      background: radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.25), transparent 60%),
-                  radial-gradient(circle at 80% 30%, rgba(236, 72, 153, 0.25), transparent 55%),
-                  radial-gradient(circle at 50% 80%, rgba(16, 185, 129, 0.2), transparent 60%);
+      pointer-events: none;
       z-index: -1;
+      opacity: 0.85;
+      transform: translateZ(0);
+    }
+    body::before {
+      background:
+        radial-gradient(circle at 15% 20%, rgba(59, 130, 246, 0.22), transparent 55%),
+        radial-gradient(circle at 85% 25%, rgba(236, 72, 153, 0.2), transparent 50%),
+        radial-gradient(circle at 60% 80%, rgba(16, 185, 129, 0.18), transparent 60%);
+    }
+    body::after {
+      background:
+        radial-gradient(600px at 20% 120%, rgba(59, 130, 246, 0.15), transparent),
+        radial-gradient(800px at 110% 20%, rgba(14, 165, 233, 0.1), transparent);
+      mix-blend-mode: screen;
+    }
+    .glass {
+      background: rgba(15, 23, 42, 0.72);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      backdrop-filter: blur(16px);
+    }
+    .gradient-text {
+      background: linear-gradient(120deg, #60a5fa, #22d3ee, #a855f7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .locked::after {
+      content: "🔒";
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
+      font-size: 1.25rem;
+      opacity: 0.85;
     }
   </style>
 </head>
-<body class="min-h-screen bg-slate-950 text-slate-100">
-  <!-- content omitted for brevity in generator; full content same as user paste with license hooks -->
+<body>
+  <header class="fixed top-0 inset-x-0 z-40 border-b border-slate-800/60 bg-slate-950/70 backdrop-blur-md">
+    <nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+      <a href="#top" class="text-xl font-bold tracking-tight text-slate-100">AKAY<span class="gradient-text">Tools</span></a>
+      <a href="#lisensi" class="rounded-full border border-slate-700/70 px-4 py-2 text-sm font-medium text-slate-200 transition hover:border-cyan-400/60 hover:text-cyan-300">Kelola Lisensi</a>
+    </nav>
+  </header>
+
+  <main id="top" class="mx-auto flex max-w-6xl flex-col gap-16 px-6 pb-24 pt-36">
+    <section class="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+      <div class="space-y-6">
+        <span class="inline-flex items-center gap-2 rounded-full border border-slate-700/60 bg-slate-900/70 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-cyan-300/90">Suite Penjual</span>
+        <h1 class="text-4xl font-extrabold leading-tight text-slate-100 md:text-5xl">
+          Tingkatkan performa toko dengan <span class="gradient-text">kalkulator seller</span> modern.
+        </h1>
+        <p class="text-base text-slate-300/90 md:text-lg">
+          Semua tool dibuat khusus untuk seller marketplace Indonesia. Hitung margin, cek biaya admin, hingga optimasi ROAS dalam satu dashboard — akses penuh memerlukan kode lisensi aktif.
+        </p>
+        <div class="flex flex-col gap-3 sm:flex-row">
+          <a data-requires-license href="kalkulator-harga/" class="group inline-flex items-center justify-center gap-2 rounded-full bg-cyan-500 px-6 py-3 text-sm font-semibold text-slate-950 shadow-lg shadow-cyan-500/30 transition hover:bg-cyan-400">
+            Buka Kalkulator
+            <span class="text-base transition group-hover:translate-x-1">→</span>
+          </a>
+          <a href="#lisensi" class="inline-flex items-center justify-center gap-2 rounded-full border border-slate-600/70 px-6 py-3 text-sm font-semibold text-slate-200 transition hover:border-cyan-400/60 hover:text-cyan-200">
+            Masukkan Kode Lisensi
+          </a>
+        </div>
+        <dl class="grid grid-cols-2 gap-6 text-sm text-slate-400 md:grid-cols-4">
+          <div class="space-y-1">
+            <dt class="text-xs uppercase tracking-wide text-slate-500">Lisensi Aktif</dt>
+            <dd id="licenseBadge" class="text-lg font-semibold text-slate-200">Belum Aktif</dd>
+          </div>
+          <div class="space-y-1">
+            <dt class="text-xs uppercase tracking-wide text-slate-500">Kalkulasi</dt>
+            <dd class="text-lg font-semibold text-slate-200">100% client-side</dd>
+          </div>
+          <div class="space-y-1">
+            <dt class="text-xs uppercase tracking-wide text-slate-500">Update</dt>
+            <dd class="text-lg font-semibold text-slate-200">Gratis tiap bulan</dd>
+          </div>
+          <div class="space-y-1">
+            <dt class="text-xs uppercase tracking-wide text-slate-500">Support</dt>
+            <dd class="text-lg font-semibold text-slate-200">Priority chat</dd>
+          </div>
+        </dl>
+      </div>
+      <div class="relative">
+        <div class="absolute -left-10 -top-10 hidden h-72 w-72 rounded-full bg-cyan-500/20 blur-3xl lg:block"></div>
+        <div class="glass relative overflow-hidden rounded-3xl p-8 shadow-2xl shadow-cyan-500/10">
+          <div class="flex items-start justify-between">
+            <div>
+              <p class="text-xs uppercase tracking-[0.4em] text-slate-400">Status Lisensi</p>
+              <p id="licenseStatusText" class="mt-2 text-2xl font-semibold text-slate-100">Terkunci</p>
+            </div>
+            <div class="rounded-full bg-cyan-500/10 p-3 text-2xl">🔐</div>
+          </div>
+          <p class="mt-6 text-sm text-slate-300">
+            Masukkan kode lisensi resmi untuk membuka seluruh kalkulator dan fitur pro. Lisensi dapat dipakai di banyak perangkat selama tersambung dengan akun yang sama.
+          </p>
+          <ul class="mt-6 space-y-3 text-sm text-slate-300">
+            <li class="flex items-center gap-3"><span class="text-cyan-400">▹</span> Kalkulator Harga Jual & Profit</li>
+            <li class="flex items-center gap-3"><span class="text-cyan-400">▹</span> Kalkulator HPP Otomatis</li>
+            <li class="flex items-center gap-3"><span class="text-cyan-400">▹</span> Kalkulator ROAS & Untung</li>
+            <li class="flex items-center gap-3"><span class="text-cyan-400">▹</span> Tools bonus eksklusif</li>
+          </ul>
+          <div class="mt-8 space-y-3 text-xs text-slate-400">
+            <p>Lisensi trial tersedia untuk 1 hari: <code class="rounded bg-slate-900/70 px-2 py-1 text-cyan-300">SELLER-TRIAL-1</code></p>
+            <p>Kode lisensi Anda aman tersimpan secara lokal di browser.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="space-y-8">
+      <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div>
+          <h2 class="text-2xl font-bold text-slate-100">Tool Unggulan</h2>
+          <p class="text-sm text-slate-400">Semua kalkulator dirancang menyerupai pengalaman "kalkulator seller" populer — kini dalam satu halaman.</p>
+        </div>
+        <a href="#lisensi" class="text-sm font-semibold text-cyan-300 hover:text-cyan-200">Aktifkan lisensi untuk membuka semuanya →</a>
+      </div>
+      <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+        <article class="group relative overflow-hidden rounded-2xl border border-slate-800/70 bg-slate-900/60 p-6 transition hover:border-cyan-400/50" data-tool-card>
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-slate-100">Kalkulator Harga Jual</h3>
+            <span class="text-xs font-semibold uppercase tracking-wide text-cyan-300">Pro</span>
+          </div>
+          <p class="mt-3 text-sm text-slate-400">Hitung margin Shopee/Tokopedia otomatis termasuk promo dan biaya admin.</p>
+          <a data-requires-license href="kalkulator-harga/" class="mt-6 inline-flex items-center gap-2 rounded-full bg-slate-800 px-4 py-2 text-xs font-semibold text-slate-200 transition group-hover:bg-cyan-500/90 group-hover:text-slate-950">
+            Gunakan Kalkulator
+            <span class="text-base transition group-hover:translate-x-1">→</span>
+          </a>
+        </article>
+        <article class="group relative overflow-hidden rounded-2xl border border-slate-800/70 bg-slate-900/60 p-6 transition hover:border-cyan-400/50" data-tool-card>
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-slate-100">Kalkulator HPP</h3>
+            <span class="text-xs font-semibold uppercase tracking-wide text-cyan-300">Pro</span>
+          </div>
+          <p class="mt-3 text-sm text-slate-400">Rinci seluruh komponen biaya produksi dan logistik untuk menentukan HPP terbaik.</p>
+          <a data-requires-license href="kalkulator-hpp/" class="mt-6 inline-flex items-center gap-2 rounded-full bg-slate-800 px-4 py-2 text-xs font-semibold text-slate-200 transition group-hover:bg-cyan-500/90 group-hover:text-slate-950">
+            Buka Kalkulator
+            <span class="text-base transition group-hover:translate-x-1">→</span>
+          </a>
+        </article>
+        <article class="group relative overflow-hidden rounded-2xl border border-slate-800/70 bg-slate-900/60 p-6 transition hover:border-cyan-400/50" data-tool-card>
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-slate-100">Kalkulator ROAS</h3>
+            <span class="text-xs font-semibold uppercase tracking-wide text-cyan-300">Pro</span>
+          </div>
+          <p class="mt-3 text-sm text-slate-400">Simulasikan budget iklan dan target penjualan untuk menjaga rasio ROAS sehat.</p>
+          <a data-requires-license href="kalkulator-roas/" class="mt-6 inline-flex items-center gap-2 rounded-full bg-slate-800 px-4 py-2 text-xs font-semibold text-slate-200 transition group-hover:bg-cyan-500/90 group-hover:text-slate-950">
+            Analisa ROAS
+            <span class="text-base transition group-hover:translate-x-1">→</span>
+          </a>
+        </article>
+        <article class="group relative overflow-hidden rounded-2xl border border-slate-800/70 bg-slate-900/60 p-6 transition hover:border-cyan-400/50" data-tool-card>
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-slate-100">Hitung Persentase Admin</h3>
+            <span class="text-xs font-semibold uppercase tracking-wide text-cyan-300">Pro</span>
+          </div>
+          <p class="mt-3 text-sm text-slate-400">Ketahui biaya admin marketplace berdasarkan kategori produk secara instan.</p>
+          <a data-requires-license href="hitung-persentase-admin/" class="mt-6 inline-flex items-center gap-2 rounded-full bg-slate-800 px-4 py-2 text-xs font-semibold text-slate-200 transition group-hover:bg-cyan-500/90 group-hover:text-slate-950">
+            Hitung Sekarang
+            <span class="text-base transition group-hover:translate-x-1">→</span>
+          </a>
+        </article>
+        <article class="group relative overflow-hidden rounded-2xl border border-slate-800/70 bg-slate-900/60 p-6 transition hover:border-cyan-400/50" data-tool-card>
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-slate-100">Untung vs ROAS</h3>
+            <span class="text-xs font-semibold uppercase tracking-wide text-cyan-300">Pro</span>
+          </div>
+          <p class="mt-3 text-sm text-slate-400">Bandingkan potensi laba dengan pengeluaran iklan untuk menentukan strategi iklan.</p>
+          <a data-requires-license href="untung-rugi-roas/" class="mt-6 inline-flex items-center gap-2 rounded-full bg-slate-800 px-4 py-2 text-xs font-semibold text-slate-200 transition group-hover:bg-cyan-500/90 group-hover:text-slate-950">
+            Cek Simulasi
+            <span class="text-base transition group-hover:translate-x-1">→</span>
+          </a>
+        </article>
+        <article class="group relative overflow-hidden rounded-2xl border border-cyan-500/40 bg-gradient-to-br from-slate-900/70 to-slate-900/20 p-6">
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-slate-100">Bonus Eksklusif</h3>
+            <span class="text-xs font-semibold uppercase tracking-wide text-cyan-300">Segera</span>
+          </div>
+          <p class="mt-3 text-sm text-slate-200">
+            Dapatkan template laporan, panduan optimasi iklan, dan akses komunitas saat lisensi aktif. Konten baru rilis setiap bulan.
+          </p>
+          <div class="mt-6 inline-flex items-center gap-2 rounded-full bg-cyan-500/20 px-4 py-2 text-xs font-semibold text-cyan-200">
+            <span>🔔</span> Notifikasi rilis otomatis
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section id="lisensi" class="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
+      <div class="glass rounded-3xl p-8">
+        <h2 class="text-2xl font-bold text-slate-100">Aktivasi Lisensi</h2>
+        <p class="mt-2 text-sm text-slate-300">Masukkan kode lisensi Anda untuk membuka akses kalkulator. Anda juga bisa mengimpor katalog kode lisensi tambahan.</p>
+        <form id="licenseForm" class="mt-8 space-y-4">
+          <div class="space-y-2">
+            <label for="licenseCode" class="text-sm font-semibold text-slate-200">Kode Lisensi</label>
+            <input id="licenseCode" name="licenseCode" type="text" placeholder="Contoh: SELLERPRO-2025" class="w-full rounded-2xl border border-slate-700/60 bg-slate-900/70 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/40" required>
+          </div>
+          <div class="flex flex-col gap-3 text-sm sm:flex-row">
+            <button type="submit" class="flex-1 rounded-full bg-cyan-500 px-5 py-3 font-semibold text-slate-950 transition hover:bg-cyan-400">Aktifkan Lisensi</button>
+            <button type="button" id="deactivateBtn" class="flex-1 rounded-full border border-slate-600/70 px-5 py-3 font-semibold text-slate-200 transition hover:border-rose-400/60 hover:text-rose-200">Nonaktifkan</button>
+          </div>
+          <p id="licenseFeedback" class="text-sm font-medium text-cyan-300"></p>
+        </form>
+      </div>
+      <div class="space-y-6">
+        <div class="rounded-3xl border border-slate-800/60 bg-slate-900/60 p-6">
+          <h3 class="text-lg font-semibold text-slate-100">Katalog Lisensi</h3>
+          <p class="mt-2 text-sm text-slate-400">Tambahkan daftar kode lisensi ke dalam perangkat ini agar mudah dibagikan ke tim Anda.</p>
+          <form id="catalogForm" class="mt-4 space-y-3">
+            <textarea id="catalogInput" rows="4" placeholder="Masukkan daftar kode dipisah koma atau baris baru" class="w-full rounded-2xl border border-slate-800/60 bg-slate-950/70 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/30"></textarea>
+            <div class="flex flex-col gap-2 text-xs text-slate-400">
+              <label class="inline-flex items-center gap-2">
+                <input type="radio" name="catalogMode" value="merge" checked class="h-4 w-4 rounded border-slate-600 bg-slate-900 text-cyan-500 focus:ring-cyan-500">
+                <span>Gabung dengan katalog yang ada</span>
+              </label>
+              <label class="inline-flex items-center gap-2">
+                <input type="radio" name="catalogMode" value="replace" class="h-4 w-4 rounded border-slate-600 bg-slate-900 text-cyan-500 focus:ring-cyan-500">
+                <span>Ganti seluruh katalog (selain default)</span>
+              </label>
+            </div>
+            <button type="submit" class="w-full rounded-full border border-cyan-500/40 bg-cyan-500/10 px-5 py-3 text-sm font-semibold text-cyan-200 transition hover:border-cyan-400/70 hover:bg-cyan-500/20">Simpan Katalog</button>
+            <p id="catalogFeedback" class="text-xs font-medium text-cyan-300"></p>
+          </form>
+        </div>
+        <div class="rounded-3xl border border-slate-800/60 bg-slate-900/60 p-6">
+          <h3 class="text-lg font-semibold text-slate-100">FAQ Singkat</h3>
+          <dl class="mt-4 space-y-4 text-sm text-slate-300">
+            <div>
+              <dt class="font-semibold text-slate-200">Apakah data saya aman?</dt>
+              <dd class="mt-1 text-slate-400">Seluruh kalkulasi berjalan di browser Anda, tanpa server eksternal.</dd>
+            </div>
+            <div>
+              <dt class="font-semibold text-slate-200">Berapa lama lisensi berlaku?</dt>
+              <dd class="mt-1 text-slate-400">Lisensi reguler berlaku satu tahun dan dapat diperpanjang kapan saja.</dd>
+            </div>
+            <div>
+              <dt class="font-semibold text-slate-200">Bisakah digunakan oleh tim?</dt>
+              <dd class="mt-1 text-slate-400">Ya, impor katalog lisensi untuk mendistribusikan kode ke anggota tim lain.</dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-slate-800/60 bg-slate-950/80 py-10">
+    <div class="mx-auto flex max-w-6xl flex-col gap-4 px-6 text-sm text-slate-500 md:flex-row md:items-center md:justify-between">
+      <p>&copy; <span id="year"></span> AKAY Tools 2025. Semua hak dilindungi.</p>
+      <div class="flex items-center gap-4">
+        <a href="#top" class="transition hover:text-cyan-300">Kembali ke atas</a>
+        <a href="#lisensi" class="transition hover:text-cyan-300">Kelola lisensi</a>
+      </div>
+    </div>
+  </footer>
 
   <script src="./assets/license.js"></script>
   <script>
-    // minimal hooks preserved from user's HTML to interact with SellerLicense
-    document.addEventListener('seller-license-status', (e) => {
-      // no-op here; UI updates handled in full file supplied by the user.
+    const lockedTargets = new Set();
+
+    function setLockedState(el, locked) {
+      const control = el;
+      if (locked) {
+        control.dataset.locked = 'true';
+        control.classList.add('pointer-events-none', 'opacity-60');
+        control.setAttribute('aria-disabled', 'true');
+      } else {
+        control.dataset.locked = 'false';
+        control.classList.remove('pointer-events-none', 'opacity-60');
+        control.removeAttribute('aria-disabled');
+      }
+    }
+
+    function updateLicenseUI(active, code) {
+      const statusText = document.getElementById('licenseStatusText');
+      const badge = document.getElementById('licenseBadge');
+      const feedback = document.getElementById('licenseFeedback');
+      const cards = document.querySelectorAll('[data-tool-card]');
+      const requiresLicense = document.querySelectorAll('[data-requires-license]');
+
+      badge.textContent = active ? 'Aktif' : 'Belum Aktif';
+      statusText.textContent = active ? 'Terbuka' : 'Terkunci';
+
+      cards.forEach(card => {
+        card.classList.toggle('locked', !active);
+        card.classList.toggle('border-cyan-500/70', active);
+        card.classList.toggle('border-slate-800/70', !active);
+      });
+
+      requiresLicense.forEach(el => {
+        setLockedState(el, !active);
+        if (!lockedTargets.has(el)) {
+          el.addEventListener('click', (event) => {
+            if (!SellerLicense.isActive()) {
+              event.preventDefault();
+              const feedbackEl = document.getElementById('licenseFeedback');
+              if (feedbackEl) {
+                feedbackEl.textContent = 'Fitur ini memerlukan lisensi aktif. Masukkan kode lisensi untuk melanjutkan.';
+              }
+              document.getElementById('licenseCode').focus();
+            }
+          });
+          lockedTargets.add(el);
+        }
+      });
+
+      if (feedback && active) {
+        feedback.textContent = `Lisensi aktif: ${code || 'Tidak diketahui'}`;
+      }
+
+      const deactivateBtn = document.getElementById('deactivateBtn');
+      if (deactivateBtn) {
+        deactivateBtn.disabled = !active;
+        deactivateBtn.classList.toggle('opacity-60', !active);
+        deactivateBtn.classList.toggle('pointer-events-none', !active);
+      }
+    }
+
+    document.addEventListener('seller-license-status', (event) => {
+      const { active, code } = event.detail || {};
+      updateLicenseUI(!!active, code);
     });
+
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    const form = document.getElementById('licenseForm');
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const input = document.getElementById('licenseCode');
+      const feedback = document.getElementById('licenseFeedback');
+      const { ok, message, code } = SellerLicense.activate(input.value);
+      if (!ok) {
+        feedback.textContent = message || 'Kode lisensi tidak valid.';
+        feedback.classList.remove('text-cyan-300');
+        feedback.classList.add('text-rose-300');
+      } else {
+        feedback.textContent = `Lisensi diaktifkan (${code}).`;
+        feedback.classList.remove('text-rose-300');
+        feedback.classList.add('text-cyan-300');
+        input.value = '';
+      }
+    });
+
+    document.getElementById('deactivateBtn').addEventListener('click', () => {
+      const feedback = document.getElementById('licenseFeedback');
+      SellerLicense.deactivate();
+      feedback.textContent = 'Lisensi dinonaktifkan.';
+      feedback.classList.remove('text-cyan-300');
+      feedback.classList.add('text-rose-300');
+    });
+
+    document.getElementById('catalogForm').addEventListener('submit', (event) => {
+      event.preventDefault();
+      const input = document.getElementById('catalogInput');
+      const feedback = document.getElementById('catalogFeedback');
+      const mode = document.querySelector('input[name="catalogMode"]:checked').value;
+      const result = SellerLicense.importCatalog(input.value, { mode });
+      if (!result.ok) {
+        feedback.textContent = result.message || 'Gagal memperbarui katalog.';
+        feedback.classList.remove('text-cyan-300');
+        feedback.classList.add('text-rose-300');
+      } else {
+        feedback.textContent = `Katalog tersimpan (${result.total} kode).`;
+        feedback.classList.remove('text-rose-300');
+        feedback.classList.add('text-cyan-300');
+        input.value = '';
+      }
+    });
+
+    // initial hydration from existing state
+    updateLicenseUI(SellerLicense.isActive(), SellerLicense.getCode());
   </script>
 </body>
 </html>
