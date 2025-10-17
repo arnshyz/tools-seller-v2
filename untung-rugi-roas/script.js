@@ -44,17 +44,17 @@
 
   function conclusionText(p){
     if (!isFinite(p.roas)) return 'ROAS tak terhingga (biaya iklan = 0).';
-    if (p.roas < 1) return 'Rugi. Pendapatan iklan lebih kecil dari biaya iklan.';
-    if (p.profit < 0) return 'Rugi. Setelah biaya admin, HPP, dan iklan, hasil negatif.';
-    if (p.roas < 2) return 'Profit tipis. Perbaiki CTR/konversi atau kurangi CPC.';
-    return 'Profit. Pertahankan optimasi dan skala hati-hati.';
+    if (p.roas < 1) return 'Rugi. Pendapatan dari iklan lebih kecil dibanding biaya yang dikeluarkan.';
+    if (p.profit < 0) return 'Masih rugi. Evaluasi biaya admin, HPP, atau kurangi spend iklan.';
+    if (p.roas < 2) return 'Profit tipis. Optimalkan konversi atau negosiasikan biaya iklan.';
+    return 'Profit sehat! Pertahankan optimasi dan jaga efisiensi ads.';
   }
 
   function render(p){
-    el.resultBox.style.display = 'block';
+    el.resultBox.classList.remove('hidden');
     el.roas.textContent = 'ROAS: ' + (isFinite(p.roas) ? p.roas.toFixed(2) : '∞');
-    el.profitTotal.textContent = 'Pendapatan Bersih: ' + fmtRp(p.profit);
-    el.profitPerProd.textContent = 'Profit per Produk: ' + fmtRp(p.profitPer);
+    el.profitTotal.textContent = fmtRp(p.profit);
+    el.profitPerProd.textContent = fmtRp(p.profitPer);
     el.conclusion.textContent = conclusionText(p);
     el.profitTotal.title = [
       'Penjualan dari Iklan: ' + fmtRp(p.sales),
@@ -79,7 +79,7 @@
 
   el.reset.addEventListener('click', () => {
     document.getElementById('profitLossForm').reset();
-    el.resultBox.style.display = 'none';
+    el.resultBox.classList.add('hidden');
   });
 
   document.querySelectorAll('[data-format="number"]').forEach(inp => {
