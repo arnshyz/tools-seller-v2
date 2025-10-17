@@ -60,6 +60,31 @@
       font-size: 1.25rem;
       opacity: 0.85;
     }
+    .floating-whatsapp {
+      position: fixed;
+      bottom: 1.75rem;
+      right: 1.5rem;
+      z-index: 50;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      color: #0f172a;
+      font-weight: 600;
+      border-radius: 9999px;
+      padding: 0.85rem 1.25rem;
+      box-shadow: 0 20px 45px -15px rgba(34, 197, 94, 0.6);
+      transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+    }
+    .floating-whatsapp:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 24px 55px -20px rgba(74, 222, 128, 0.75);
+      opacity: 0.95;
+    }
+    .floating-whatsapp span {
+      font-size: 0.85rem;
+      letter-spacing: 0.02em;
+    }
   </style>
 </head>
 <body>
@@ -292,6 +317,17 @@
       </div>
     </div>
   </footer>
+
+  <a
+    href="https://wa.me/62818404222?text=Halo%20saya%20ingin%20pesan%20lisensi"
+    class="floating-whatsapp"
+    target="_blank"
+    rel="noopener"
+    aria-label="Chat lisensi via WhatsApp"
+  >
+    <span>💬</span>
+    <span>WhatsApp Lisensi</span>
+  </a>
 
   <script src="./assets/license.js"></script>
   <script>
