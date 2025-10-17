@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kalkulator Harga Jual Multi-Produk</title>
+  <style>
+    body{font-family:'Inter',Arial,sans-serif;max-width:1200px;margin:auto;padding:20px;background:#f4f7f6;color:#333}
+    h2{text-align:center;color:#007bff;margin-bottom:30px}
+    .table-container{overflow-x:auto;margin-bottom:20px}
+    table{width:100%;border-collapse:collapse;margin-bottom:20px;box-shadow:0 4px 8px rgba(0,0,0,.1);border-radius:8px;overflow:hidden}
+    th,td{border:1px solid #e0e0e0;padding:10px;text-align:left;vertical-align:top;min-width:120px}
+    th:nth-child(2),td:nth-child(2){min-width:180px}
+    th{background:#e9ecef;font-weight:bold;color:#555;position:sticky;top:0;z-index:10}
+    input[type=number],input[type=text]{width:calc(100% - 12px);padding:6px;border:1px solid #ced4da;border-radius:5px;box-sizing:border-box;font-size:14px}
+    .action-buttons{display:flex;gap:10px;margin-bottom:20px;justify-content:center;flex-wrap:wrap}
+    button{background:#007bff;color:#fff;font-size:16px;padding:12px 20px;border:none;border-radius:8px;cursor:pointer;box-shadow:0 4px 10px rgba(0,123,255,.2);transition:background .3s,box-shadow .3s}
+    button:hover{background:#0056b3;box-shadow:0 6px 12px rgba(0,123,255,.3)}
+    .delete-btn{background:#dc3545;padding:5px 10px;font-size:12px;border-radius:5px}
+    .delete-btn:hover{background:#c82333}
+    .result-cell{font-weight:bold;color:#0056b3;text-align:right}
+    .profit-cell{color:#155724}.loss-cell{color:#721c24}.even-cell{color:#856404}
+    .small-text{font-size:.7em;color:#666;display:block;margin-top:2px}
+    @media (max-width:768px){body{padding:10px}table{display:block;width:max-content}th,td{min-width:120px}
+      .action-buttons{flex-direction:column}button{width:100%}}
+  </style>
+</head>
+<body>
+  <h2>Kalkulator Harga Jual Multi-Produk</h2>
+  <p>Hitung harga jual, potongan TikTok, pemasukan, dan profit per produk.</p>
+
+  <div class="action-buttons">
+    <button type="button" id="btnAddRow">+ Tambah Produk</button>
+    <button type="button" id="btnCalcAll">Hitung Semua Produk</button>
+    <button type="button" id="btnDownload">Download Excel</button>
+  </div>
+
+  <div class="table-container">
+    <table id="productTable">
+      <thead>
+        <tr>
+          <th>No.</th><th>Nama Produk</th><th>HPP (Modal)</th><th>Keuntungan Diinginkan</th>
+          <th>Komisi TikTok %</th><th>Komisi Affiliate %</th><th>Xtra Boost/Cashback %</th>
+          <th>Voucher Seller %</th><th>Flash Sale/Campaign %</th><th>Pajak PPh 22 %</th>
+          <th>Harga Jual</th><th>Subsidi Ongkir Xtra</th><th>Total Potongan (Rp)</th>
+          <th>Total Potongan (%)</th><th>Estimasi Pemasukan</th><th>Keuntungan Bersih</th>
+          <th>Status Profit</th><th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <script defer>
+    let rowCount = 0;
+    const ID = (r,k)=>`${k}_${r}`;
+    const rupiah = n => `Rp ${Math.round(n).toLocaleString('id-ID')}`;
+
+    function addRow(){
+      rowCount++;
+      const r=rowCount;
+      const table=document.getElementById('productTable');
+      const tb=table.tBodies[0]||table.createTBody();
+      const tr=tb.insertRow(); tr.id=`productRow_${r}`;
+
+      tr.insertCell().textContent=r;
+      tr.insertCell().innerHTML=`<input type="text" id="${ID(r,'namaProduk')}" value="Produk ${r}">`;
+      tr.insertCell().innerHTML=`<input type="number" id="${ID(r,'hpp')}" value="30000">`;
+      tr.insertCell().innerHTML=`<input type="number" id="${ID(r,'profitDesired')}" value="10000">`;
+      tr.insertCell().innerHTML=`<input type="number" id="${ID(r,'komisi')}" value="6">`;
+      tr.insertCell().innerHTML=`<input type="number" id="${ID(r,'affiliate')}" value="10">`;
+      tr.insertCell().innerHTML=`<input type="number" id="${ID(r,'cashback')}" value="15">`;
+      tr.insertCell().innerHTML=`<input type="number" id="${ID(r,'voucher')}" value="5">`;
+      tr.insertCell().innerHTML=`<input type="number" id="${ID(r,'flashsale')}" value="30">`;
+      tr.insertCell().innerHTML=`<input type="number" id="${ID(r,'pph')}" value="0.5">`;
+      tr.insertCell().innerHTML=`<span id="${ID(r,'hargaJual')}" class="result-cell">Rp 0</span>`;
+      tr.insertCell().innerHTML=`<span id="${ID(r,'subsidiNominal')}" class="result-cell">Rp 0</span>`;
+      tr.insertCell().innerHTML=`<span id="${ID(r,'totalPotonganNominal')}" class="result-cell">Rp 0</span>`;
+      tr.insertCell().innerHTML=`<span id="${ID(r,'totalPotonganPersen')}" class="result-cell">0%</span>`;
+      tr.insertCell().innerHTML=`<span id="${ID(r,'estimasiPemasukan')}" class="result-cell">Rp 0</span>`;
+      tr.insertCell().innerHTML=`<span id="${ID(r,'netProfit')}" class="result-cell">Rp 0</span>`;
+      tr.insertCell().innerHTML=`<span id="${ID(r,'profitStatus')}" class="result-cell even-cell">Impasi</span>`;
+      const del = tr.insertCell();
+      const btn = document.createElement('button');
+      btn.className='delete-btn'; btn.type='button'; btn.textContent='Hapus';
+      btn.addEventListener('click',()=>deleteRow(r));
+      del.appendChild(btn);
+
+      // input listeners
+      tr.querySelectorAll('input').forEach(inp=>{
+        inp.addEventListener('input',()=>calculateRow(r));
+      });
+
+      calculateRow(r);
+    }
+
+    function deleteRow(r){
+      const row=document.getElementById(`productRow_${r}`); if(!row) return;
+      row.remove();
+      const rows=[...document.querySelectorAll('#productTable tbody tr')];
+      rows.forEach((tr,i)=>{
+        const n=i+1; tr.id=`productRow_${n}`; tr.cells[0].textContent=n;
+        tr.querySelectorAll('input, span').forEach(el=>{
+          if(el.id) el.id=el.id.replace(/_\d+$/,'_'+n);
+        });
+        const delBtn=tr.querySelector('.delete-btn');
+        delBtn.replaceWith(delBtn.cloneNode(true));
+        tr.querySelector('.delete-btn').addEventListener('click',()=>deleteRow(n));
+        tr.querySelectorAll('input').forEach(inp=>{
+          inp.replaceWith(inp.cloneNode(true));
+        });
+        tr.querySelectorAll('input').forEach(inp=>{
+          inp.addEventListener('input',()=>calculateRow(n));
+        });
+      });
+      rowCount=rows.length;
+    }
+
+    function cleanNumberString(t){return parseFloat(t.replace(/Rp\s?/g,'').replace(/%/g,'').replace(/\./g,'').replace(/,/g,''));}
+
+    function calculateRow(r){
+      const val=id=>parseFloat(document.getElementById(ID(r,id))?.value)||0;
+      const hpp=val('hpp'),profitDesired=val('profitDesired');
+      const komisi=val('komisi')/100,affiliate=val('affiliate')/100,cashback=val('cashback')/100,voucher=val('voucher')/100,flashsale=val('flashsale')/100,pph=val('pph')/100;
+      const subsidiPct=0.03,maxSubsidi=10000;
+      const base=hpp+profitDesired,pctNoSubsidi=komisi+affiliate+cashback+voucher+flashsale+pph;
+
+      let hargaJual=0,subsidiNominal=0;
+      const denom1=1-(pctNoSubsidi+subsidiPct);
+      const try1=denom1>0?base/denom1:Infinity;
+
+      if(try1!==Infinity && subsidiPct*try1<=maxSubsidi){
+        hargaJual=Math.round(try1); subsidiNominal=Math.round(subsidiPct*hargaJual);
+      }else{
+        const denom2=1-pctNoSubsidi;
+        const try2=denom2>0?(base+maxSubsidi)/denom2:Infinity;
+        if(try2!==Infinity && subsidiPct*try2>maxSubsidi){hargaJual=Math.round(try2);subsidiNominal=maxSubsidi;}
+        else return setError(r);
+      }
+
+      const komisiNom=komisi*hargaJual,affiliateNom=affiliate*hargaJual,cashbackNom=cashback*hargaJual,voucherNom=voucher*hargaJual,flashsaleNom=flashsale*hargaJual,pphNom=pph*hargaJual;
+      const totalPotonganNom=komisiNom+affiliateNom+cashbackNom+voucherNom+flashsaleNom+pphNom+subsidiNominal;
+      const totalPotonganPct=hargaJual>0?(totalPotonganNom/hargaJual)*100:0;
+      const pemasukan=hargaJual-Math.round(totalPotonganNom),netProfit=pemasukan-hpp;
+
+      let status='',cls='';
+      if(netProfit>=profitDesired){status='Sesuai Target';cls='profit-cell';}
+      else if(netProfit>0){status='Profit Tipis';cls='even-cell';}
+      else{status='Rugi';cls='loss-cell';}
+
+      setText(ID(r,'hargaJual'),rupiah(hargaJual));
+      setText(ID(r,'subsidiNominal'),rupiah(subsidiNominal));
+      setText(ID(r,'totalPotonganNominal'),rupiah(totalPotonganNom));
+      setText(ID(r,'totalPotonganPersen'),`${totalPotonganPct.toFixed(2)}%`);
+      setHTML(ID(r,'estimasiPemasukan'),`${rupiah(pemasukan)}<span class="small-text">(Harga Jual - Potongan TikTok)</span>`);
+      setHTML(ID(r,'netProfit'),`${rupiah(netProfit)}<span class="small-text">(Pemasukan - HPP - Iklan)</span>`);
+      const el=document.getElementById(ID(r,'profitStatus'));
+      el.className='result-cell'; el.classList.add(cls); el.textContent=status;
+    }
+
+    function setError(r){
+      ['hargaJual','subsidiNominal','totalPotonganNominal','totalPotonganPersen','estimasiPemasukan','netProfit','profitStatus']
+        .forEach(k=>setText(ID(r,k),'Error'));
+      const ps=document.getElementById(ID(r,'profitStatus')); if(ps) ps.className='result-cell loss-cell';
+    }
+
+    function setText(id,txt){const el=document.getElementById(id); if(el) el.textContent=txt;}
+    function setHTML(id,html){const el=document.getElementById(id); if(el) el.innerHTML=html;}
+
+    // Init
+    document.addEventListener('DOMContentLoaded',()=>{
+      document.getElementById('btnAddRow').addEventListener('click', addRow);
+      document.getElementById('btnCalcAll').addEventListener('click', ()=>{for(let i=1;i<=rowCount;i++) calculateRow(i);});
+      document.getElementById('btnDownload').addEventListener('click', downloadExcel);
+      addRow();
+    });
+
+    function downloadExcel(){
+      const table=document.getElementById('productTable');
+      const csv=[];
+      const headers=[...table.querySelectorAll('thead th')].map(th=>th.textContent.trim());
+      csv.push(headers.join(','));
+      table.querySelectorAll('tbody tr').forEach(row=>{
+        const rowData=[...row.querySelectorAll('td')].map((cell,i)=>{
+          if(i===0) return `"${cell.textContent.trim()}"`;
+          if(i>=1&&i<=9){const inp=cell.querySelector('input'); return `"${inp?inp.value.trim():''}"`; }
+          if(i>=10&&i<=16){const span=cell.querySelector('span'); const main=span?.firstChild?span.firstChild.textContent.trim():span?.textContent.trim()||''; return `"${cleanNumberString(main)}"`;}
+          return '""';
+        });
+        csv.push(rowData.join(','));
+      });
+      const blob=new Blob([csv.join('\n')],{type:'text/csv;charset=utf-8;'});
+      const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='kalkulator_harga_produk.csv'; a.click(); URL.revokeObjectURL(a.href);
+    }
+  </script>
+</body>
+</html>
