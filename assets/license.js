@@ -5,9 +5,9 @@
   const LS_CATALOG_KEY = 'seller_license_catalog';
   const LS_USED_CODES_KEY = 'seller_license_used_codes';
   const LS_TRIAL_USED_KEY = 'seller_license_trial_consumed';
-  const TRIAL_CODE = 'SELLER-TRIAL-1';
+  const TRIAL_CODE = 'COBADULU';
   const LEGACY_TRIAL_CODES = ['SELLER-TRIAL-7'];
-  const TRIAL_DURATION_MS = 24 * 60 * 60 * 1000; // 1 hari
+  const TRIAL_DURATION_MS = 1 * 60 * 1000; // 1 menit
   const DEFAULT_CODES = [TRIAL_CODE,'SELLER TOOLS PRO 2025','SELLERPRO-2025'];
 
   function isTrialCode(code){
