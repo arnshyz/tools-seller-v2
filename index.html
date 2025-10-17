@@ -153,8 +153,12 @@
             <li class="flex items-center gap-3"><span class="text-cyan-400">▹</span> Kalkulator ROAS & Untung</li>
             <li class="flex items-center gap-3"><span class="text-cyan-400">▹</span> Tools bonus eksklusif</li>
           </ul>
+          <div id="licenseExpirySection" class="mt-6 hidden rounded-2xl border border-cyan-500/40 bg-cyan-500/10 p-4 text-xs text-cyan-100 shadow-inner shadow-cyan-500/20">
+            <p id="licenseExpiryExact" class="text-sm font-semibold text-cyan-100"></p>
+            <p id="licenseExpiryCountdown" class="mt-1 text-xs text-cyan-100/80"></p>
+          </div>
           <div class="mt-8 space-y-3 text-xs text-slate-400">
-            
+
             <p>Kode lisensi Anda aman tersimpan secara lokal di browser.</p>
           </div>
         </div>
@@ -332,6 +336,10 @@
   <script src="./assets/license.js"></script>
   <script>
     const lockedTargets = new Set();
+    const expirySection = document.getElementById('licenseExpirySection');
+    const expiryExact = document.getElementById('licenseExpiryExact');
+    const expiryCountdown = document.getElementById('licenseExpiryCountdown');
+    let countdownInterval = null;
 
     function setLockedState(el, locked) {
       const control = el;
@@ -346,14 +354,98 @@
       }
     }
 
-    function updateLicenseUI(active, code) {
+    function stopCountdown() {
+      if (countdownInterval) {
+        clearInterval(countdownInterval);
+        countdownInterval = null;
+      }
+    }
+
+    function formatDateTime(timestamp) {
+      const date = new Date(timestamp);
+      if (Number.isNaN(date.getTime())) return '';
+      const dateStr = date.toLocaleDateString('id-ID', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: '2-digit',
+      });
+      const timeStr = date.toLocaleTimeString('id-ID', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      });
+      return `${dateStr} ${timeStr}`;
+    }
+
+    function formatRemaining(ms) {
+      const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+      const days = Math.floor(totalSeconds / 86400);
+      const hours = Math.floor((totalSeconds % 86400) / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+      const parts = [];
+      if (days > 0) {
+        parts.push(`${days} hari`);
+      }
+      parts.push(`${String(hours).padStart(2, '0')} jam`);
+      parts.push(`${String(minutes).padStart(2, '0')} menit`);
+      parts.push(`${String(seconds).padStart(2, '0')} detik`);
+      return parts.join(' ');
+    }
+
+    function renderExpiry(detail) {
+      if (!expirySection || !expiryExact || !expiryCountdown) return false;
+      if (!detail || !detail.active || !detail.expiresAt) {
+        expirySection.classList.add('hidden');
+        return false;
+      }
+
+      expirySection.classList.remove('hidden');
+      const exactText = formatDateTime(detail.expiresAt);
+      expiryExact.textContent = exactText ? `Berakhir pada ${exactText}` : 'Berakhir segera';
+
+      const remaining = detail.expiresAt - Date.now();
+      if (remaining <= 0) {
+        expiryCountdown.textContent = 'Lisensi trial telah kedaluwarsa.';
+        const feedback = document.getElementById('licenseFeedback');
+        if (feedback) {
+          feedback.textContent = 'Lisensi trial telah kedaluwarsa. Masukkan kode baru untuk melanjutkan.';
+          feedback.classList.remove('text-cyan-300');
+          feedback.classList.add('text-rose-300');
+        }
+        SellerLicense.refreshStatus();
+        return false;
+      }
+
+      expiryCountdown.textContent = `Sisa waktu: ${formatRemaining(remaining)}`;
+      return true;
+    }
+
+    function startCountdown(detail) {
+      stopCountdown();
+      if (!renderExpiry(detail)) {
+        return;
+      }
+
+      countdownInterval = setInterval(() => {
+        const latest = SellerLicense.getStatusDetail();
+        if (!renderExpiry(latest)) {
+          stopCountdown();
+        }
+      }, 1000);
+    }
+
+    function updateLicenseUIFromDetail(detail = {}) {
+      const active = !!detail.active;
+      const code = detail.code || null;
       const statusText = document.getElementById('licenseStatusText');
       const badge = document.getElementById('licenseBadge');
       const feedback = document.getElementById('licenseFeedback');
       const cards = document.querySelectorAll('[data-tool-card]');
       const requiresLicense = document.querySelectorAll('[data-requires-license]');
 
-      badge.textContent = active ? 'Aktif' : 'Belum Aktif';
+      badge.textContent = active ? (detail.isTrial ? 'Trial Aktif' : 'Aktif') : 'Belum Aktif';
       statusText.textContent = active ? 'Terbuka' : 'Terkunci';
 
       cards.forEach(card => {
@@ -379,8 +471,14 @@
         }
       });
 
-      if (feedback && active) {
-        feedback.textContent = `Lisensi aktif: ${code || 'Tidak diketahui'}`;
+      if (feedback) {
+        if (active) {
+          feedback.textContent = `Lisensi aktif: ${code || 'Tidak diketahui'}${detail.isTrial ? ' (Trial)' : ''}`;
+          feedback.classList.remove('text-rose-300');
+          feedback.classList.add('text-cyan-300');
+        } else if (!feedback.textContent) {
+          feedback.textContent = '';
+        }
       }
 
       const deactivateBtn = document.getElementById('deactivateBtn');
@@ -389,11 +487,19 @@
         deactivateBtn.classList.toggle('opacity-60', !active);
         deactivateBtn.classList.toggle('pointer-events-none', !active);
       }
+
+      if (expirySection) {
+        if (active && detail.expiresAt) {
+          startCountdown(detail);
+        } else {
+          stopCountdown();
+          expirySection.classList.add('hidden');
+        }
+      }
     }
 
     document.addEventListener('seller-license-status', (event) => {
-      const { active, code } = event.detail || {};
-      updateLicenseUI(!!active, code);
+      updateLicenseUIFromDetail(event.detail || {});
     });
 
     document.getElementById('year').textContent = new Date().getFullYear();
@@ -443,7 +549,7 @@
     });
 
     // initial hydration from existing state
-    updateLicenseUI(SellerLicense.isActive(), SellerLicense.getCode());
+    updateLicenseUIFromDetail(SellerLicense.getStatusDetail());
   </script>
 </body>
 </html>

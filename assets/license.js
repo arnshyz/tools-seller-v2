@@ -77,7 +77,6 @@
       if(Date.now() - activatedAt > TRIAL_DURATION_MS){
         localStorage.removeItem(LS_ACTIVE_KEY);
         localStorage.removeItem(LS_ACTIVE_META_KEY);
-        dispatch(false, null);
         return null;
       }
     }
@@ -111,8 +110,40 @@
     }catch(e){ return false; }
   }
   function normalize(s){ return String(s||'').trim(); }
-  function dispatch(active, code){
-    document.dispatchEvent(new CustomEvent('seller-license-status',{detail:{active, code}}));
+
+  function buildStatusDetail(state){
+    if(!state){
+      return {
+        active:false,
+        code:null,
+        activatedAt:null,
+        expiresAt:null,
+        remainingMs:0,
+        isTrial:false
+      };
+    }
+    const {code, activatedAt} = state;
+    const trial = isTrialCode(code);
+    let expiresAt = null;
+    let remainingMs = null;
+    if(trial && activatedAt){
+      expiresAt = activatedAt + TRIAL_DURATION_MS;
+      remainingMs = Math.max(0, expiresAt - Date.now());
+    }
+    return {
+      active:true,
+      code,
+      activatedAt:activatedAt || null,
+      expiresAt,
+      remainingMs,
+      isTrial:trial
+    };
+  }
+
+  function broadcastStatus(){
+    const detail = buildStatusDetail(evaluateState());
+    document.dispatchEvent(new CustomEvent('seller-license-status',{detail}));
+    return detail;
   }
 
   function clearActiveState(){
@@ -130,7 +161,8 @@
       if(!c) return {ok:false, message:'Masukkan kode lisensi.'};
       const current = evaluateState();
       if(current && current.code === c){
-        return {ok:true, code:c};
+        const detail = broadcastStatus();
+        return {ok:true, code:c, detail};
       }
       if(!getCatalog().includes(c)) return {ok:false, message:'Kode lisensi tidak dikenal.'};
       if(isTrialCode(c)){
@@ -144,20 +176,25 @@
         }
       }
       persistActiveState(c);
-      dispatch(true, c);
-      return {ok:true, code:c};
+      const detail = broadcastStatus();
+      return {ok:true, code:c, detail};
     },
     deactivate(){
       clearActiveState();
-      dispatch(false, null);
-      return {ok:true};
+      const detail = broadcastStatus();
+      return {ok:true, detail};
     },
     isActive(){
-      return !!evaluateState();
+      return buildStatusDetail(evaluateState()).active;
     },
     getCode(){
-      const state = evaluateState();
-      return state ? state.code : null;
+      return buildStatusDetail(evaluateState()).code;
+    },
+    getStatusDetail(){
+      return buildStatusDetail(evaluateState());
+    },
+    refreshStatus(){
+      return broadcastStatus();
     },
     importCatalog(input, opts){
       try{
@@ -178,5 +215,5 @@
     }
   };
   window.SellerLicense = api;
-  dispatch(api.isActive(), api.getCode());
+  broadcastStatus();
 })();
