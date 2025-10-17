@@ -1,104 +1,175 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="scroll-smooth">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-  <title>Kalkulator Harga Jual Shopee — Full Client-side</title>
+  <title>Kalkulator Harga Jual Shopee — Seller Tools</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <script>
-    (function(){const d=document.documentElement;const t=localStorage.getItem('theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches)){d.classList.add('dark');}else{d.classList.remove('dark');}})();
-  </script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-    :root{--bg:#f8fafc;--bg-offset:#fff;--card-bg:#fff;--border:#e2e8f0;--text-main:#0f172a;--text-secondary:#64748b;--accent:#4f46e5;--accent-hover:#4338ca}
-    html.dark{--bg:#0d121f;--bg-offset:#111827;--card-bg:#1e293b;--border:#334155;--text-main:#f1f5f9;--text-secondary:#94a3b8;--accent:#6366f1;--accent-hover:#818cf8}
-    body{font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial;background:var(--bg);color:var(--text-secondary)}
-    h1,h2,h3,.font-bold{color:var(--text-main)}
-    .input-group{position:relative}
-    .input-group .prefix,.input-group .suffix{position:absolute;top:0;bottom:0;display:flex;align-items:center;background:#f3f4f6;border:1px solid #d1d5db;color:#4b5563;font-size:.875rem;padding:0 .75rem}
-    html.dark .input-group .prefix,html.dark .input-group .suffix{background:#374151;border-color:#4b5563;color:#d1d5db}
-    .input-group .prefix{border-right:none;border-radius:.5rem 0 0 .5rem}
-    .input-group .suffix{border-left:none;border-radius:0 .5rem .5rem 0;right:0}
-    .input-group input{padding-left:3rem}
-    .input-group input.with-suffix{padding-right:3.5rem}
-    .result-row{display:flex;justify-content:space-between;align-items:center;padding:.5rem 0;border-bottom:1px solid var(--border)}
-    .result-row:last-child{border-bottom:0}
-    .profit-positive{color:#16a34a}.dark .profit-positive{color:#4ade80}
-    .profit-negative{color:#dc2626}.dark .profit-negative{color:#f87171}
-    .calc-input-field{background:var(--bg)!important;border-color:var(--border)!important;color:var(--text-main)!important}
-    .calc-card-bg{background:var(--card-bg)}
-    .result-summary-box{background:var(--bg)}
+    :root {
+      color-scheme: dark;
+      --bg: #030712;
+      --bg-offset: rgba(15, 23, 42, 0.72);
+      --card-bg: rgba(15, 23, 42, 0.72);
+      --border: rgba(148, 163, 184, 0.25);
+      --text-main: #e2e8f0;
+      --text-secondary: #94a3b8;
+      --accent: #22d3ee;
+      --accent-hover: #38bdf8;
+    }
+    body {
+      background: var(--bg);
+      color: var(--text-secondary);
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: -1;
+      opacity: 0.85;
+      transform: translateZ(0);
+    }
+    body::before {
+      background:
+        radial-gradient(circle at 15% 20%, rgba(59, 130, 246, 0.22), transparent 55%),
+        radial-gradient(circle at 85% 25%, rgba(236, 72, 153, 0.2), transparent 50%),
+        radial-gradient(circle at 60% 80%, rgba(16, 185, 129, 0.18), transparent 60%);
+    }
+    body::after {
+      background:
+        radial-gradient(600px at 20% 120%, rgba(59, 130, 246, 0.15), transparent),
+        radial-gradient(800px at 110% 20%, rgba(14, 165, 233, 0.1), transparent);
+      mix-blend-mode: screen;
+    }
+    h1, h2, h3, .font-bold { color: var(--text-main); }
+    .calc-card-bg {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 1.75rem;
+      box-shadow: 0 25px 60px -30px rgba(34, 211, 238, 0.25);
+    }
+    .input-group { position: relative; }
+    .input-group .prefix,
+    .input-group .suffix {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      display: flex;
+      align-items: center;
+      background: rgba(2, 6, 23, 0.55);
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      color: #cbd5f5;
+      font-size: 0.85rem;
+      padding: 0 0.85rem;
+    }
+    .input-group .prefix { border-right: none; border-radius: 1rem 0 0 1rem; }
+    .input-group .suffix { border-left: none; border-radius: 0 1rem 1rem 0; right: 0; }
+    .input-group input { padding-left: 3.25rem; }
+    .input-group input.with-suffix { padding-right: 3.5rem; }
+    .calc-input-field {
+      background: rgba(2, 6, 23, 0.6) !important;
+      border: 1px solid rgba(148, 163, 184, 0.35) !important;
+      color: var(--text-main) !important;
+      border-radius: 1rem !important;
+      padding: 0.85rem 1rem !important;
+    }
+    .calc-input-field:focus {
+      outline: none !important;
+      border-color: rgba(56, 189, 248, 0.8) !important;
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25) !important;
+    }
+    .result-summary-box { background: rgba(2, 6, 23, 0.55); border-radius: 1.25rem; }
+    .result-row { display: flex; justify-content: space-between; align-items: center; padding: 0.65rem 0; border-bottom: 1px solid var(--border); }
+    .result-row:last-child { border-bottom: 0; }
+    .profit-positive { color: #34d399; }
+    .profit-negative { color: #f87171; }
+    .badge { display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 600; font-size: 0.75rem; padding: 0.2rem 0.75rem; border-radius: 9999px; border: 1px solid rgba(148, 163, 184, 0.35); background: rgba(15, 23, 42, 0.65); color: #cbd5f5; }
+    .gradient-text {
+      background: linear-gradient(120deg, #60a5fa, #22d3ee, #a855f7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
   </style>
 </head>
 <body class="antialiased">
-<header class="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-b border-gray-200 dark:border-slate-800">
-  <nav class="container mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="flex items-center justify-between h-16">
-      <a href="#" class="text-2xl font-bold"><strong>Apps</strong>Lets</a>
-      <div class="hidden md:flex items-center gap-6 text-sm font-medium">
-        <button id="themeToggle" class="text-sm font-semibold text-gray-600 dark:text-gray-300">Tema</button>
-      </div>
-    </div>
+<header class="fixed top-0 inset-x-0 z-40 border-b border-slate-800/60 bg-slate-950/70 backdrop-blur-md">
+  <nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+    <a href="../index.html" class="text-xl font-bold tracking-tight text-slate-100">AKAY<span class="gradient-text">Tools</span></a>
+    <a href="../index.html" class="inline-flex items-center gap-2 rounded-full border border-slate-700/70 px-4 py-2 text-sm font-medium text-slate-200 transition hover:border-cyan-400/60 hover:text-cyan-300">← Kembali ke Beranda</a>
   </nav>
 </header>
 
-<main>
-<div class="container mx-auto py-12 px-4">
-  <div class="text-center mb-10">
-    <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight">Kalkulator Harga Jual & Profit Shopee</h1>
-    <p class="mt-3 text-lg max-w-2xl mx-auto">Semua perhitungan dilakukan di browser. Tidak ada panggilan API.</p>
-  </div>
+<main class="mx-auto max-w-6xl px-6 pb-24 pt-36">
+  <section class="text-center space-y-4 mb-16">
+    <span class="inline-flex items-center gap-2 rounded-full border border-slate-700/60 bg-slate-900/60 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-cyan-300/90">Kalkulator Seller</span>
+    <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-100">Kalkulator Harga Jual &amp; Profit Shopee</h1>
+    <p class="mx-auto max-w-2xl text-base md:text-lg text-slate-300/90">Simulasikan margin, biaya admin, promo, hingga live streaming dalam satu panel interaktif.</p>
+  </section>
 
-  <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 max-w-6xl mx-auto">
-    <div class="lg:col-span-3 space-y-4">
-      <form id="calculator-form">
-        <div class="p-5 calc-card-bg rounded-xl shadow-md border border-[var(--border)] space-y-4">
-          <h2 class="text-lg font-bold">Data Transaksi</h2>
+  <section class="grid grid-cols-1 gap-8 lg:grid-cols-[1.25fr_0.95fr] items-start">
+    <div class="space-y-6">
+      <form id="calculator-form" class="space-y-6">
+        <div class="calc-card-bg p-6 md:p-8 space-y-5">
+          <div class="flex items-center justify-between">
+            <h2 class="text-lg font-bold">Data Transaksi</h2>
+            <span class="badge">Client-side only</span>
+          </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label class="block text-xs font-medium">Jumlah Barang</label>
-              <input type="number" name="jumlah_barang" value="1" min="1" required class="calc-input-field mt-1 block w-full rounded-lg text-sm p-2">
+              <label class="block text-xs font-semibold uppercase tracking-wide text-slate-400">Jumlah Barang</label>
+              <input type="number" name="jumlah_barang" value="1" min="1" required class="calc-input-field mt-2 block w-full text-sm" />
             </div>
             <div>
-              <label class="block text-xs font-medium">Harga Modal (per unit)</label>
-              <div class="input-group mt-1">
+              <label class="block text-xs font-semibold uppercase tracking-wide text-slate-400">Harga Modal (per unit)</label>
+              <div class="input-group mt-2">
                 <span class="prefix">Rp</span>
-                <input type="number" name="harga_modal" value="0" min="0" required class="calc-input-field block w-full rounded-lg text-sm p-2">
+                <input type="number" name="harga_modal" value="0" min="0" required class="calc-input-field block w-full text-sm" />
               </div>
             </div>
           </div>
           <div>
-            <label class="block text-xs font-medium">Harga Jual (per unit)</label>
-            <div class="input-group mt-1">
+            <label class="block text-xs font-semibold uppercase tracking-wide text-slate-400">Harga Jual (per unit)</label>
+            <div class="input-group mt-2">
               <span class="prefix">Rp</span>
-              <input type="number" name="harga_jual" value="0" min="0" required class="calc-input-field block w-full rounded-lg text-sm p-2">
+              <input type="number" name="harga_jual" value="0" min="0" required class="calc-input-field block w-full text-sm" />
             </div>
           </div>
           <div>
-            <label class="block text-xs font-medium">Diskon Penjual?</label>
-            <select name="ada_diskon" class="calc-input-field mt-1 block w-full rounded-lg text-sm p-2">
+            <label class="block text-xs font-semibold uppercase tracking-wide text-slate-400">Diskon Penjual</label>
+            <select name="ada_diskon" class="calc-input-field mt-2 block w-full text-sm">
               <option value="tidak">Tidak</option>
               <option value="ya">Ya</option>
             </select>
           </div>
-          <div id="diskon-fields" class="hidden space-y-4 border-t border-[var(--border)] pt-4">
+          <div id="diskon-fields" class="hidden space-y-4 border-t border-slate-800/60 pt-4">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label class="block text-xs font-medium">Diskon Produk</label>
-                <div class="flex mt-1">
-                  <input type="number" name="diskon_produk_nilai" value="0" min="0" class="calc-input-field rounded-l-lg text-sm p-2 w-full">
-                  <select name="diskon_produk_tipe" class="calc-input-field rounded-r-lg border-l-0 text-sm p-2">
-                    <option value="rp">Rp</option><option value="%">%</option>
+                <label class="block text-xs font-semibold uppercase tracking-wide text-slate-400">Diskon Produk</label>
+                <div class="flex mt-2">
+                  <input type="number" name="diskon_produk_nilai" value="0" min="0" class="calc-input-field rounded-r-none text-sm w-full" />
+                  <select name="diskon_produk_tipe" class="calc-input-field rounded-l-none border-l-0 text-sm">
+                    <option value="rp">Rp</option>
+                    <option value="%">%</option>
                   </select>
                 </div>
               </div>
               <div>
-                <label class="block text-xs font-medium">Voucher Toko</label>
-                <div class="flex mt-1">
-                  <input type="number" name="voucher_toko_nilai" value="0" min="0" class="calc-input-field rounded-l-lg text-sm p-2 w-full">
-                  <select name="voucher_toko_tipe" class="calc-input-field rounded-r-lg border-l-0 text-sm p-2">
-                    <option value="rp">Rp</option><option value="%">%</option>
+                <label class="block text-xs font-semibold uppercase tracking-wide text-slate-400">Voucher Toko</label>
+                <div class="flex mt-2">
+                  <input type="number" name="voucher_toko_nilai" value="0" min="0" class="calc-input-field rounded-r-none text-sm w-full" />
+                  <select name="voucher_toko_tipe" class="calc-input-field rounded-l-none border-l-0 text-sm">
+                    <option value="rp">Rp</option>
+                    <option value="%">%</option>
                   </select>
                 </div>
               </div>
@@ -106,86 +177,89 @@
           </div>
         </div>
 
-        <div class="mt-4 p-5 calc-card-bg rounded-xl shadow-md border border-[var(--border)] space-y-4">
-          <h2 class="text-lg font-bold">Biaya Layanan/Administrasi</h2>
-          <div>
-            <label class="block text-xs font-medium">Kategori Produk</label>
-            <select name="kategori" id="kategori" class="calc-input-field mt-1 block w-full rounded-lg text-sm p-2">
-              <option value="C">Kategori C (Elektronik, Komputer, HP) - Admin 5.75%</option>
-              <option value="B">Kategori B (Perlengkapan Rumah, Mainan) - Admin 8%</option>
-              <option value="A">Kategori A (Fashion, Otomotif) - Admin 8%</option>
-              <option value="manual">Lainnya (Input Manual)</option>
-            </select>
-          </div>
-          <div id="persen-admin-manual-container" class="hidden">
-            <label class="block text-xs font-medium">Biaya Administrasi Manual</label>
-            <div class="input-group mt-1">
-              <input type="number" name="persen_admin_manual" value="5.75" step="0.01" min="0" class="calc-input-field with-suffix block w-full rounded-lg text-sm p-2 pl-3">
-              <span class="suffix">%</span>
+        <div class="calc-card-bg p-6 md:p-8 space-y-5">
+          <h2 class="text-lg font-bold">Biaya Layanan &amp; Promosi</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="sm:col-span-2">
+              <label class="block text-xs font-semibold uppercase tracking-wide text-slate-400">Kategori Produk</label>
+              <select name="kategori" id="kategori" class="calc-input-field mt-2 block w-full text-sm">
+                <option value="C">Kategori C (Elektronik) — Admin 5.75%</option>
+                <option value="B">Kategori B (Perlengkapan Rumah/Mainan) — Admin 8%</option>
+                <option value="A">Kategori A (Fashion/Otomotif) — Admin 8%</option>
+                <option value="manual">Lainnya (Input Manual)</option>
+              </select>
             </div>
-          </div>
-          <div>
-            <label class="block text-xs font-medium">Program Promosi</label>
-            <select name="program_promosi" class="calc-input-field mt-1 block w-full rounded-lg text-sm p-2">
-              <option value="go_xtra_dan_promo_xtra">Gratis Ongkir XTRA + Promo XTRA</option>
-              <option value="go_xtra_saja">Hanya Gratis Ongkir XTRA</option>
-              <option value="promo_xtra_saja">Hanya Promo XTRA</option>
-              <option value="tidak" selected>Tidak Ikut Program</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-xs font-medium">Penjualan dari Live?</label>
-            <select name="jual_live" class="calc-input-field mt-1 block w-full rounded-lg text-sm p-2">
-              <option value="tidak">Tidak</option><option value="ya">Ya</option>
-            </select>
-          </div>
-          <div id="live-xtra-fields" class="hidden">
-            <label class="block text-xs font-medium">Biaya Program Live XTRA</label>
-            <div class="input-group mt-1">
-              <input type="number" name="persen_live" value="3.0" step="0.1" min="0" class="calc-input-field with-suffix block w-full rounded-lg text-sm p-2 pl-3">
-              <span class="suffix">%</span>
+            <div id="persen-admin-manual-container" class="hidden sm:col-span-2">
+              <label class="block text-xs font-semibold uppercase tracking-wide text-slate-400">Biaya Admin Manual</label>
+              <div class="input-group mt-2">
+                <input type="number" name="persen_admin_manual" value="5.75" step="0.01" min="0" class="calc-input-field with-suffix block w-full text-sm pl-3" />
+                <span class="suffix">%</span>
+              </div>
             </div>
-          </div>
-          <div>
-            <label class="block text-xs font-medium">Biaya Program Lainnya (Opsional)</label>
-            <div class="input-group mt-1">
-              <span class="prefix">Rp</span>
-              <input type="number" name="biaya_lainnya" value="0" min="0" class="calc-input-field block w-full rounded-lg text-sm p-2">
+            <div class="sm:col-span-2">
+              <label class="block text-xs font-semibold uppercase tracking-wide text-slate-400">Program Promosi</label>
+              <select name="program_promosi" class="calc-input-field mt-2 block w-full text-sm">
+                <option value="go_xtra_dan_promo_xtra">Gratis Ongkir XTRA + Promo XTRA</option>
+                <option value="go_xtra_saja">Hanya Gratis Ongkir XTRA</option>
+                <option value="promo_xtra_saja">Hanya Promo XTRA</option>
+                <option value="tidak" selected>Tidak Ikut Program</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wide text-slate-400">Penjualan dari Live?</label>
+              <select name="jual_live" class="calc-input-field mt-2 block w-full text-sm">
+                <option value="tidak">Tidak</option>
+                <option value="ya">Ya</option>
+              </select>
+            </div>
+            <div id="live-xtra-fields" class="hidden">
+              <label class="block text-xs font-semibold uppercase tracking-wide text-slate-400">Biaya Live XTRA</label>
+              <div class="input-group mt-2">
+                <input type="number" name="persen_live" value="3.0" step="0.1" min="0" class="calc-input-field with-suffix block w-full text-sm pl-3" />
+                <span class="suffix">%</span>
+              </div>
+            </div>
+            <div class="sm:col-span-2">
+              <label class="block text-xs font-semibold uppercase tracking-wide text-slate-400">Biaya Program Lainnya (Opsional)</label>
+              <div class="input-group mt-2">
+                <span class="prefix">Rp</span>
+                <input type="number" name="biaya_lainnya" value="0" min="0" class="calc-input-field block w-full text-sm" />
+              </div>
             </div>
           </div>
         </div>
       </form>
     </div>
 
-    <div class="lg:col-span-2 space-y-4">
-      <div id="result-area" class="p-5 calc-card-bg rounded-xl shadow-md border border-[var(--border)] sticky top-20">
+    <div class="space-y-6">
+      <div id="result-area" class="calc-card-bg p-6 md:p-8 sticky top-32">
         <div id="result-content">
-          <div class="pb-3 border-b border-[var(--border)]">
-            <p class="text-xs font-medium">Total Pembayaran Pembeli</p>
-            <p id="result-total-pembayaran" class="text-2xl font-bold">Rp 0</p>
+          <div class="pb-4 border-b border-slate-800/60">
+            <p class="text-xs font-semibold uppercase tracking-widest text-slate-400">Total Pembayaran Pembeli</p>
+            <p id="result-total-pembayaran" class="text-3xl font-bold text-slate-100">Rp 0</p>
           </div>
-          <div class="py-3">
-            <p class="text-sm font-semibold mb-2">Detail Potongan</p>
+          <div class="py-5">
+            <p class="text-sm font-semibold text-slate-200 mb-3">Rincian Potongan</p>
             <div class="space-y-1 text-xs">
               <div class="result-row"><span>Biaya Administrasi</span><span id="result-biaya-admin" class="font-mono">Rp 0</span></div>
               <div class="result-row"><span>Biaya Proses Pesanan</span><span id="result-biaya-proses" class="font-mono">Rp 0</span></div>
               <div class="result-row" id="result-row-program-promosi"><span>Biaya Program Promosi</span><span id="result-biaya-program-promosi" class="font-mono">Rp 0</span></div>
               <div class="result-row" id="result-row-live-xtra"><span>Biaya Live XTRA</span><span id="result-biaya-live-xtra" class="font-mono">Rp 0</span></div>
               <div class="result-row"><span>Biaya Program Lainnya</span><span id="result-biaya-lainnya" class="font-mono">Rp 0</span></div>
-              <div class="result-row font-semibold !border-t mt-2 pt-2"><span class="text-gray-800">Total Biaya Layanan</span><span id="result-total-biaya" class="font-mono text-red-500">Rp 0</span></div>
+              <div class="result-row font-semibold !border-t mt-2 pt-2"><span class="text-slate-300">Total Biaya Layanan</span><span id="result-total-biaya" class="font-mono text-rose-300">Rp 0</span></div>
             </div>
           </div>
-          <div class="pt-3 border-t border-[var(--border)] result-summary-box p-3 rounded-lg -mx-5 -mb-5 mt-2">
-            <div class="result-row !border-0 mb-2">
-              <p class="text-sm font-bold">Dana Diterima Penjual</p>
-              <p id="result-dana-diterima" class="text-xl font-bold">Rp 0</p>
+          <div class="pt-4 border-t border-slate-800/60 result-summary-box p-4">
+            <div class="result-row !border-0 mb-3">
+              <p class="text-sm font-semibold text-slate-200">Dana Diterima Penjual</p>
+              <p id="result-dana-diterima" class="text-2xl font-bold text-emerald-300">Rp 0</p>
             </div>
             <div class="result-row !border-0">
-              <p class="text-sm font-bold profit-positive">Profit</p>
-              <p id="result-profit" class="text-xl font-bold profit-positive">Rp 0</p>
+              <p class="text-sm font-semibold text-slate-200">Profit</p>
+              <p id="result-profit" class="text-2xl font-bold profit-positive">Rp 0</p>
             </div>
           </div>
-          <div id="summary-per-produk" class="hidden pt-3 border-t border-[var(--border)] mt-3">
+          <div id="summary-per-produk" class="hidden pt-4 border-t border-slate-800/60 mt-4">
             <div class="space-y-2 text-xs">
               <div class="result-row !border-0">
                 <span>Total Harga Jual (<span id="summary-jumlah-barang"></span> barang)</span>
@@ -199,16 +273,20 @@
           </div>
         </div>
       </div>
+      <div class="rounded-3xl border border-slate-800/70 bg-slate-900/60 p-6 text-center text-sm text-slate-400">
+        <p class="font-semibold text-slate-200">Perlu referensi biaya admin?</p>
+        <p class="mt-2">Gunakan kalkulator <a href="../hitung-persentase-admin/" class="text-cyan-300 hover:text-cyan-200">Hitung Persentase Admin</a> untuk validasi cepat.</p>
+      </div>
     </div>
-  </div>
-</div>
+  </section>
 </main>
 
+<script src="../assets/license.js"></script>
+<script src="../assets/license-gate.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   const $ = (s,p=document)=>p.querySelector(s);
   const $$ = (s,p=document)=>[...p.querySelectorAll(s)];
-  $('#themeToggle')?.addEventListener('click',()=>{const d=document.documentElement;const isDark=d.classList.toggle('dark');localStorage.setItem('theme',isDark?'dark':'light');});
 
   const form = $('#calculator-form');
   const fields = $$('input[type="number"], select', form);
@@ -344,7 +422,10 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   diskonSelect.addEventListener('change', ()=>{
     diskonFields.classList.toggle('hidden', diskonSelect.value!=='ya');
-    if(diskonSelect.value!=='ya'){ form.querySelector('input[name="diskon_produk_nilai"]').value=0; form.querySelector('input[name="voucher_toko_nilai"]').value=0; }
+    if(diskonSelect.value!=='ya'){
+      form.querySelector('input[name="diskon_produk_nilai"]').value=0;
+      form.querySelector('input[name="voucher_toko_nilai"]').value=0;
+    }
     run();
   });
   liveSelect.addEventListener('change', ()=>{ liveFields.classList.toggle('hidden', liveSelect.value!=='ya'); run(); });

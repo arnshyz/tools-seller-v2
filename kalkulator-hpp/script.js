@@ -39,9 +39,9 @@
   }
 
   function render(x){
-    el.box.style.display = 'block';
+    el.box.classList.remove('hidden');
     el.total.textContent = fmtRp(x.total);
-    el.outQty.textContent = x.qty.toLocaleString('id-ID');
+    el.outQty.textContent = `${x.qty.toLocaleString('id-ID')} unit`;
     el.hpp.textContent = fmtRp(x.hpp);
     el.rDasar.textContent = fmtRp(x.dasar);
     el.rGaji.textContent = fmtRp(x.gaji);
@@ -63,7 +63,7 @@
   });
   el.reset.addEventListener('click', () => {
     document.getElementById('hppForm').reset();
-    el.box.style.display = 'none';
+    el.box.classList.add('hidden');
   });
 
   numberInputs().forEach(inp => {

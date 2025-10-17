@@ -1,149 +1,171 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="scroll-smooth">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Kalkulator ROAS Shopee — Client-only</title>
+<title>Kalkulator ROAS Shopee — Seller Tools</title>
 <script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-<script>
-(function(){const d=document.documentElement;const t=localStorage.getItem('theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches)){d.classList.add('dark');}else{d.classList.remove('dark');}})();
-</script>
 <style>
-:root{--bg:#f8fafc;--bg-offset:#fff;--card-bg:#fff;--border:#e2e8f0;--text-main:#0f172a;--text-secondary:#64748b;--accent:#4f46e5;--accent-hover:#4338ca}
-html.dark{--bg:#0d121f;--bg-offset:#111827;--card-bg:#1e293b;--border:#334155;--text-main:#f1f5f9;--text-secondary:#94a3b8;--accent:#6366f1;--accent-hover:#818cf8}
-body{background:var(--bg);color:var(--text-secondary);font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial}
-.card{background:var(--card-bg);border:1px solid var(--border)}
-.main-text{color:var(--text-main)}.secondary-text{color:var(--text-secondary)}
-.input-field{background:var(--bg);border:1px solid var(--border);color:var(--text-main);border-radius:.375rem}
-.input-field:focus{outline:none;border-color:var(--accent)}
-.gauge-container{width:220px;height:110px;position:relative;overflow:hidden}
-.gauge-arc{position:absolute;top:0;left:0;width:100%;height:200%;border-radius:50%;border:25px solid;box-sizing:border-box;clip-path:polygon(0% 0%,100% 0%,100% 50%,0% 50%)}
-.gauge-needle{position:absolute;bottom:0;left:50%;width:2px;height:90px;background:var(--text-main);transform-origin:bottom center;transition:transform .8s cubic-bezier(.68,-.55,.27,1.55);border-radius:2px}
-.gauge-center-circle{position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);width:16px;height:16px;background:var(--text-main);border-radius:50%;border:4px solid var(--card-bg)}
-.gauge-label{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);font-weight:600;font-size:.875rem;text-align:center;width:120px}
-.summary-card{background:var(--bg);border:1px solid var(--border)}
-.simulation-table th{background:var(--bg-offset)}
-.simulation-table tr.highlight-bep{background:#fef9c3}.dark .simulation-table tr.highlight-bep{background:#713f1250}
-.simulation-table tr.highlight-reco{background:#dbeafe}.dark .simulation-table tr.highlight-reco{background:#1e3a8a50}
-.badge{display:inline-flex;align-items:center;gap:.375rem;font-weight:600;font-size:.75rem;padding:.125rem .5rem;border-radius:9999px;border:1px solid transparent}
-.badge-red{color:#991b1b;background:#fee2e2;border-color:#fecaca}.dark .badge-red{color:#fecaca;background:#7f1d1d50;border-color:#7f1d1d}
-.badge-amber{color:#92400e;background:#fffbeb;border-color:#fde68a}.dark .badge-amber{color:#fde68a;background:#78350f50;border-color:#78350f}
-.badge-green{color:#065f46;background:#ecfdf5;border-color:#a7f3d0}.dark .badge-green{color:#a7f3d0;background:#064e3b50;border-color:#065f46}
+  :root {
+    color-scheme: dark;
+    --bg: #030712;
+    --card-bg: rgba(15, 23, 42, 0.72);
+    --border: rgba(148, 163, 184, 0.25);
+    --text-main: #e2e8f0;
+    --text-secondary: #94a3b8;
+    --accent: #22d3ee;
+  }
+  body {
+    background: var(--bg);
+    color: var(--text-secondary);
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+  }
+  body::before,
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: -1;
+    opacity: 0.85;
+    transform: translateZ(0);
+  }
+  body::before {
+    background:
+      radial-gradient(circle at 15% 20%, rgba(59, 130, 246, 0.22), transparent 55%),
+      radial-gradient(circle at 85% 25%, rgba(236, 72, 153, 0.2), transparent 50%),
+      radial-gradient(circle at 60% 80%, rgba(16, 185, 129, 0.18), transparent 60%);
+  }
+  body::after {
+    background:
+      radial-gradient(600px at 20% 120%, rgba(59, 130, 246, 0.15), transparent),
+      radial-gradient(800px at 110% 20%, rgba(14, 165, 233, 0.1), transparent);
+    mix-blend-mode: screen;
+  }
+  .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 1.75rem; box-shadow: 0 25px 60px -30px rgba(34, 211, 238, 0.25); }
+  .main-text { color: var(--text-main); }
+  .secondary-text { color: var(--text-secondary); }
+  .input-field { background: rgba(2, 6, 23, 0.6); border: 1px solid rgba(148, 163, 184, 0.35); color: var(--text-main); border-radius: 1rem; padding: 0.85rem 1rem; width: 100%; transition: border-color .2s ease, box-shadow .2s ease; }
+  .input-field:focus { outline: none; border-color: rgba(56, 189, 248, 0.8); box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25); }
+  .simulation-table th { background: rgba(2, 6, 23, 0.6); color: var(--text-main); }
+  .simulation-table td { border-color: rgba(148, 163, 184, 0.2); }
+  .simulation-table tr.highlight-bep { background: rgba(250, 204, 21, 0.08); }
+  .simulation-table tr.highlight-reco { background: rgba(59, 130, 246, 0.08); }
+  .badge { display:inline-flex; align-items:center; gap:.4rem; font-weight:600; font-size:.75rem; padding:.25rem .75rem; border-radius:9999px; border:1px solid rgba(148,163,184,0.35); background:rgba(15,23,42,0.7); color:#cbd5f5; }
+  .badge-red { color:#fecaca; background:rgba(248,113,113,0.18); border-color:rgba(248,113,113,0.45); }
+  .badge-amber { color:#fde68a; background:rgba(251,191,36,0.18); border-color:rgba(250,204,21,0.45); }
+  .badge-green { color:#bbf7d0; background:rgba(16,185,129,0.18); border-color:rgba(16,185,129,0.45); }
+  .summary-card { background: rgba(2, 6, 23, 0.55); border: 1px solid rgba(148, 163, 184, 0.2); border-radius: 1.25rem; }
+  .gauge-container{width:220px;height:110px;position:relative;overflow:hidden;margin:0 auto;}
+  .gauge-arc{position:absolute;top:0;left:0;width:100%;height:200%;border-radius:50%;border:25px solid;box-sizing:border-box;clip-path:polygon(0% 0%,100% 0%,100% 50%,0% 50%);}
+  .gauge-needle{position:absolute;bottom:0;left:50%;width:3px;height:90px;background:var(--text-main);transform-origin:bottom center;transition:transform .8s cubic-bezier(.68,-.55,.27,1.55);border-radius:2px;}
+  .gauge-center-circle{position:absolute;bottom:-10px;left:50%;transform:translateX(-50%);width:18px;height:18px;background:var(--text-main);border-radius:50%;border:4px solid var(--card-bg);}
+  .gauge-label{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);font-weight:600;font-size:.85rem;text-align:center;width:140px;color:var(--text-main);}
+  .gradient-text { background: linear-gradient(120deg, #60a5fa, #22d3ee, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 </style>
 </head>
 <body class="antialiased">
-<header class="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-b border-gray-200 dark:border-slate-800">
-  <nav class="container mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="flex items-center justify-between h-16">
-      <a href="#" class="text-2xl font-bold"><strong>Apps</strong>Lets</a>
-      <div class="hidden md:flex items-center gap-6 text-sm font-medium">
-        <a class="text-gray-600 dark:text-gray-300 hover:text-[var(--accent)]">Fitur</a>
-        <a class="text-gray-600 dark:text-gray-300 hover:text-[var(--accent)]">Aplikasi Gratis</a>
-      </div>
-      <div class="flex items-center gap-4">
-        <button id="themeToggle" class="text-sm font-semibold text-gray-600 dark:text-gray-300">Tema</button>
-      </div>
-    </div>
+<header class="fixed top-0 inset-x-0 z-40 border-b border-slate-800/60 bg-slate-950/70 backdrop-blur-md">
+  <nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+    <a href="../index.html" class="text-xl font-bold tracking-tight text-slate-100">AKAY<span class="gradient-text">Tools</span></a>
+    <a href="../index.html" class="inline-flex items-center gap-2 rounded-full border border-slate-700/70 px-4 py-2 text-sm font-medium text-slate-200 transition hover:border-cyan-400/60 hover:text-cyan-300">← Kembali ke Beranda</a>
   </nav>
 </header>
 
-<main>
-<div class="container mx-auto py-12 px-4">
-  <div class="text-center mb-10">
-    <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight">Kalkulator ROAS Iklan Shopee</h1>
-    <p class="mt-3 text-lg max-w-2xl mx-auto">Versi tanpa server. Semua perhitungan terjadi di browser.</p>
-  </div>
+<main class="mx-auto max-w-6xl px-6 pb-24 pt-36">
+  <section class="text-center space-y-4 mb-16">
+    <span class="inline-flex items-center gap-2 rounded-full border border-slate-700/60 bg-slate-900/60 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-cyan-300/90">Kalkulator Seller</span>
+    <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-100">Kalkulator ROAS Iklan Shopee</h1>
+    <p class="mx-auto max-w-2xl text-base md:text-lg text-slate-300/90">Ukurnya potensi pengembalian iklan, titik impas, dan target order harian tanpa meninggalkan browser.</p>
+  </section>
 
-  <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 max-w-7xl mx-auto">
-    <div class="lg:col-span-2">
-      <form id="calculator-form" class="card p-5 rounded-xl space-y-4 sticky top-20">
-        <h2 class="text-lg font-bold main-text">Input Data Produk</h2>
-
-        <div>
-          <label class="block text-xs font-medium secondary-text">Harga Jual (per unit)</label>
-          <div class="relative mt-1">
-            <span class="absolute inset-y-0 left-0 flex items-center pl-3">Rp</span>
-            <input type="number" name="harga_jual" min="1" required class="input-field block w-full rounded-lg text-sm p-2 pl-10" value="39500">
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-xs font-medium secondary-text">Modal Produk (per unit)</label>
-          <div class="relative mt-1">
-            <span class="absolute inset-y-0 left-0 flex items-center pl-3">Rp</span>
-            <input type="number" name="modal_produk" min="0" required class="input-field block w-full rounded-lg text-sm p-2 pl-10" value="17000">
-          </div>
-        </div>
-
-        <div class="space-y-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-          <h3 class="text-base font-semibold main-text">Rincian Biaya Layanan</h3>
-
+  <section class="grid grid-cols-1 gap-8 lg:grid-cols-[0.95fr_1.05fr] items-start">
+    <div>
+      <form id="calculator-form" class="card p-6 md:p-8 space-y-5 sticky top-32">
+        <h2 class="text-lg font-bold text-slate-100">Input Data Produk</h2>
+        <div class="space-y-4">
           <div>
-            <label class="block text-xs font-medium secondary-text">Kategori Produk</label>
-            <select name="kategori" id="kategori" class="input-field mt-1 block w-full text-sm p-2">
+            <label class="block text-xs font-semibold uppercase tracking-wide text-slate-400">Harga Jual (per unit)</label>
+            <div class="relative mt-2">
+              <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-300">Rp</span>
+              <input type="number" name="harga_jual" min="1" required class="input-field pl-12" value="39500">
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wide text-slate-400">Modal Produk (per unit)</label>
+            <div class="relative mt-2">
+              <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-300">Rp</span>
+              <input type="number" name="modal_produk" min="0" required class="input-field pl-12" value="17000">
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-4 pt-4 border-t border-slate-800/60">
+          <h3 class="text-base font-semibold text-slate-100">Rincian Biaya Layanan</h3>
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wide text-slate-400">Kategori Produk</label>
+            <select name="kategori" id="kategori" class="input-field mt-2 text-sm">
               <option value="C" selected>Kategori C — Admin 5.75%</option>
               <option value="B">Kategori B — Admin 8%</option>
               <option value="A">Kategori A — Admin 8%</option>
               <option value="manual">Lainnya (Input Manual)</option>
             </select>
           </div>
-
           <div id="persen-admin-manual-container" class="hidden">
-            <label class="block text-xs font-medium secondary-text">Biaya Admin Manual (%)</label>
-            <input type="number" step="0.01" name="persen_admin_manual" class="input-field w-full text-sm p-2" value="5.75">
+            <label class="block text-xs font-semibold uppercase tracking-wide text-slate-400">Biaya Admin Manual (%)</label>
+            <input type="number" step="0.01" name="persen_admin_manual" class="input-field mt-2" value="5.75">
           </div>
-
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label class="block text-xs font-medium secondary-text">% GO XTRA</label>
-              <input type="number" step="0.01" name="persen_go_xtra" class="input-field w-full text-sm p-2" value="0">
+              <label class="block text-xs font-semibold uppercase tracking-wide text-slate-400">% GO XTRA</label>
+              <input type="number" step="0.01" name="persen_go_xtra" class="input-field mt-2" value="0">
             </div>
             <div>
-              <label class="block text-xs font-medium secondary-text">% Promo XTRA</label>
-              <input type="number" step="0.01" name="persen_promo_xtra" class="input-field w-full text-sm p-2" value="0">
+              <label class="block text-xs font-semibold uppercase tracking-wide text-slate-400">% Promo XTRA</label>
+              <input type="number" step="0.01" name="persen_promo_xtra" class="input-field mt-2" value="0">
             </div>
             <div>
-              <label class="block text-xs font-medium secondary-text">% Live XTRA</label>
-              <input type="number" step="0.01" name="persen_live_xtra" class="input-field w-full text-sm p-2" value="0">
+              <label class="block text-xs font-semibold uppercase tracking-wide text-slate-400">% Live XTRA</label>
+              <input type="number" step="0.01" name="persen_live_xtra" class="input-field mt-2" value="0">
             </div>
             <div>
-              <label class="block text-xs font-medium secondary-text">Biaya Proses Pesanan (Rp)</label>
-              <input type="number" name="biaya_proses" class="input-field w-full text-sm p-2" value="1250">
+              <label class="block text-xs font-semibold uppercase tracking-wide text-slate-400">Biaya Proses Pesanan (Rp)</label>
+              <input type="number" name="biaya_proses" class="input-field mt-2" value="1250">
             </div>
           </div>
-
-          <div class="grid grid-cols-2 gap-3 pt-2">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
             <div>
-              <label class="block text-xs font-medium secondary-text">Target Profit Bersih (%)</label>
-              <input type="number" step="0.01" name="target_profit_pct" class="input-field w-full text-sm p-2" value="10">
+              <label class="block text-xs font-semibold uppercase tracking-wide text-slate-400">Target Profit Bersih (%)</label>
+              <input type="number" step="0.01" name="target_profit_pct" class="input-field mt-2" value="10">
             </div>
             <div>
-              <label class="block text-xs font-medium secondary-text">Target Order/Hari</label>
-              <input type="number" name="order_per_hari" class="input-field w-full text-sm p-2" value="10">
+              <label class="block text-xs font-semibold uppercase tracking-wide text-slate-400">Target Order/Hari</label>
+              <input type="number" name="order_per_hari" class="input-field mt-2" value="10">
             </div>
           </div>
         </div>
       </form>
     </div>
 
-    <div class="lg:col-span-3">
-      <div id="result-area" class="space-y-4">
-        <div id="result-placeholder" class="card p-6 rounded-xl text-center h-full flex flex-col justify-center items-center">
-          <i class="fa-solid fa-lightbulb text-4xl text-yellow-400 mb-4"></i>
-          <h3 class="font-bold main-text">Hasil Analisa Anda</h3>
-          <p class="text-sm secondary-text mt-2">Isi data untuk melihat rekomendasi ROAS dan simulasi profit.</p>
-        </div>
+    <div id="result-area" class="space-y-6">
+      <div id="result-placeholder" class="card p-8 text-center flex flex-col items-center justify-center gap-3">
+        <i class="fa-solid fa-lightbulb text-4xl text-yellow-400"></i>
+        <h3 class="text-lg font-semibold text-slate-100">Hasil Analisa Anda</h3>
+        <p class="text-sm text-slate-400">Isi data produk di sebelah kiri untuk melihat rekomendasi ROAS dan simulasi profit.</p>
       </div>
     </div>
-  </div>
-
-  <div class="mt-12 text-center p-8 bg-gray-100 dark:bg-gray-800 rounded-lg border border-[var(--border)]">
-    <p class="font-semibold text-gray-500">Area Iklan Google AdSense</p>
-  </div>
-</div>
+  </section>
 </main>
 
+<script src="../assets/license.js"></script>
+<script src="../assets/license-gate.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   const $ = (s, p=document) => p.querySelector(s);
@@ -153,15 +175,8 @@ document.addEventListener('DOMContentLoaded', () => {
     area: $('#result-area'),
     placeholder: $('#result-placeholder').cloneNode(true),
     kategori: $('#kategori'),
-    adminManual: $('#persen-admin-manual-container'),
-    themeToggle: $('#themeToggle')
+    adminManual: $('#persen-admin-manual-container')
   };
-
-  ui.themeToggle.addEventListener('click', () => {
-    const d=document.documentElement;
-    const isDark=d.classList.toggle('dark');
-    localStorage.setItem('theme', isDark?'dark':'light');
-  });
 
   const formatRp = v => new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',minimumFractionDigits:0}).format(Math.round(v||0));
 
@@ -205,7 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const biaya_per_unit = modal + fee_admin + fee_go + fee_promo + fee_live + fee_fix;
     const estimasi_modal_harian = biaya_per_unit * orders;
 
-    const proyeksi_profit = target_profit_unit; // target profit/unit
+    const proyeksi_profit = target_profit_unit;
 
     const roasList = [50, 30, 25, 20, 15, 12, 10, 8, 6, 5, 4, 3, 2];
     const simulasi = roasList.map(r => {
@@ -231,7 +246,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const r = +roas;
     const b = parseFloat(bep);
     const rc = parseFloat(reco);
-    if (profit < 0 || isFinite(b) && r < b) return 'Rugi';
+    if (profit < 0 || (isFinite(b) && r < b)) return 'Rugi';
     if (isFinite(rc) && r < rc) return 'Profit Tipis';
     return 'Sesuai Target';
   }
@@ -242,46 +257,70 @@ document.addEventListener('DOMContentLoaded', () => {
   function render(data){
     const { roas_rekomendasi, roas_bep, estimasi_modal_harian, proyeksi_profit, simulasi, rincian_per_unit } = data;
     const tpl = `
-      <div class="card p-6 rounded-xl">
-        <h3 class="text-lg font-bold main-text text-center">Rekomendasi Target ROAS</h3>
-        <p class="text-7xl font-extrabold main-text text-center my-4">${roas_rekomendasi}</p>
-        <div class="flex justify-center relative">
-          <div class="gauge-container">
-            <div class="gauge-arc" style="border-color:#ef4444;transform:rotate(180deg)"></div>
-            <div class="gauge-arc" style="border-color:#f59e0b;transform:rotate(270deg)"></div>
-            <div class="gauge-arc" style="border-color:#22c55e;transform:rotate(315deg)"></div>
-            <div class="gauge-needle" id="gauge-needle"></div>
-            <div class="gauge-center-circle"></div>
+      <div class="card p-8 space-y-6 text-center">
+        <h3 class="text-lg font-bold main-text">Rekomendasi Target ROAS</h3>
+        <div class="flex flex-col items-center gap-4">
+          <div class="relative">
+            <div class="gauge-container">
+              <div class="gauge-arc" style="border-color:#ef4444;transform:rotate(180deg)"></div>
+              <div class="gauge-arc" style="border-color:#f59e0b;transform:rotate(270deg)"></div>
+              <div class="gauge-arc" style="border-color:#22c55e;transform:rotate(315deg)"></div>
+              <div class="gauge-needle" id="gauge-needle"></div>
+              <div class="gauge-center-circle"></div>
+            </div>
+            <p id="gauge-label" class="gauge-label"></p>
           </div>
-          <p id="gauge-label" class="gauge-label"></p>
+          <p class="text-6xl font-extrabold text-emerald-300">${roas_rekomendasi}</p>
         </div>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div class="summary-card p-4 rounded-lg text-center"><p class="text-xs font-medium secondary-text">Proyeksi Profit (target) / unit</p><p class="text-xl font-bold main-text mt-1">${formatRp(proyeksi_profit)}</p></div>
-        <div class="summary-card p-4 rounded-lg text-center"><p class="text-xs font-medium secondary-text">Titik Impas (BEP)</p><p class="text-xl font-bold main-text mt-1">${roas_bep}</p></div>
-        <div class="summary-card p-4 rounded-lg text-center"><p class="text-xs font-medium secondary-text">Modal Harian (estimasi)</p><p class="text-xl font-bold main-text mt-1">${formatRp(estimasi_modal_harian)}</p></div>
+        <div class="summary-card p-5 text-center">
+          <p class="text-xs font-semibold secondary-text uppercase tracking-wide">Target Profit / unit</p>
+          <p class="mt-2 text-xl font-semibold main-text">${formatRp(proyeksi_profit)}</p>
+        </div>
+        <div class="summary-card p-5 text-center">
+          <p class="text-xs font-semibold secondary-text uppercase tracking-wide">Titik Impas (BEP)</p>
+          <p class="mt-2 text-xl font-semibold main-text">${roas_bep}</p>
+        </div>
+        <div class="summary-card p-5 text-center">
+          <p class="text-xs font-semibold secondary-text uppercase tracking-wide">Modal Harian (estimasi)</p>
+          <p class="mt-2 text-xl font-semibold main-text">${formatRp(estimasi_modal_harian)}</p>
+        </div>
       </div>
-      <div class="card p-4 rounded-xl">
-        <button id="toggle-unit-details-btn" class="w-full text-left font-semibold main-text flex justify-between items-center"><span>Rincian Analisa Per Unit</span><i class="fa-solid fa-chevron-down transition-transform"></i></button>
+      <div class="card p-6">
+        <button id="toggle-unit-details-btn" class="w-full text-left font-semibold main-text flex justify-between items-center">
+          <span>Rincian Analisa Per Unit</span>
+          <i class="fa-solid fa-chevron-down transition-transform"></i>
+        </button>
         <div id="unit-details-container" class="hidden mt-4 text-sm secondary-text">
-          <div class="grid grid-cols-2 gap-2">
+          <div class="grid grid-cols-2 gap-3">
             <p class="font-semibold main-text">Harga Jual</p><p class="text-right">${formatRp(rincian_per_unit.harga_jual)}</p>
             <p>(-) Modal Produk</p><p class="text-right">- ${formatRp(rincian_per_unit.modal_produk)}</p>
             <p>(-) Biaya Admin Shopee</p><p class="text-right">- ${formatRp(rincian_per_unit.biaya_admin_shopee)} (${rincian_per_unit.persen_admin_shopee.toFixed(2)}%)</p>
-            <p>(-) Biaya Program GO XTRA</p><p class="text-right">- ${formatRp(rincian_per_unit.biaya_go_xtra)} (${rincian_per_unit.persen_go_xtra.toFixed(2)}%)</p>
-            <p>(-) Biaya Program Promo XTRA</p><p class="text-right">- ${formatRp(rincian_per_unit.biaya_promo_xtra)} (${rincian_per_unit.persen_promo_xtra.toFixed(2)}%)</p>
-            <p>(-) Biaya Penjualan Live</p><p class="text-right">- ${formatRp(rincian_per_unit.biaya_live_xtra)} (${rincian_per_unit.persen_live_xtra.toFixed(2)}%)</p>
-            <p>(-) Biaya Proses Pesanan</p><p class="text-right">- ${formatRp(rincian_per_unit.biaya_proses_pesanan)}</p>
-            <p class="font-semibold main-text border-t pt-2 mt-2">(=) Profit Kotor (sblm Iklan)</p><p class="text-right font-semibold main-text border-t pt-2 mt-2">${formatRp(rincian_per_unit.profit_kotor_sebelum_iklan)}</p>
+            <p>(-) GO XTRA</p><p class="text-right">- ${formatRp(rincian_per_unit.biaya_go_xtra)} (${rincian_per_unit.persen_go_xtra.toFixed(2)}%)</p>
+            <p>(-) Promo XTRA</p><p class="text-right">- ${formatRp(rincian_per_unit.biaya_promo_xtra)} (${rincian_per_unit.persen_promo_xtra.toFixed(2)}%)</p>
+            <p>(-) Live XTRA</p><p class="text-right">- ${formatRp(rincian_per_unit.biaya_live_xtra)} (${rincian_per_unit.persen_live_xtra.toFixed(2)}%)</p>
+            <p>(-) Biaya Proses</p><p class="text-right">- ${formatRp(rincian_per_unit.biaya_proses_pesanan)}</p>
+            <p class="font-semibold main-text border-t border-slate-800/60 pt-3 mt-3">Profit Kotor sebelum Iklan</p><p class="text-right font-semibold main-text border-t border-slate-800/60 pt-3 mt-3">${formatRp(rincian_per_unit.profit_kotor_sebelum_iklan)}</p>
           </div>
         </div>
       </div>
-      <div class="card p-4 rounded-xl">
-        <button id="toggle-simulation-btn" class="w-full text-left font-semibold main-text flex justify-between items-center"><span>Lihat Tabel Simulasi Lengkap</span><i class="fa-solid fa-chevron-down transition-transform"></i></button>
+      <div class="card p-6">
+        <button id="toggle-simulation-btn" class="w-full text-left font-semibold main-text flex justify-between items-center">
+          <span>Lihat Tabel Simulasi ROAS</span>
+          <i class="fa-solid fa-chevron-down transition-transform"></i>
+        </button>
         <div id="simulation-table-container" class="hidden mt-4 overflow-x-auto">
           <table class="w-full text-xs simulation-table">
-            <thead><tr class="text-left"><th class="p-2">ROAS</th><th class="p-2 text-right">Profit/Unit</th><th class="p-2 text-right">Profit %</th><th class="p-2">Status</th></tr></thead>
-            <tbody id="simulation-table-body"></tbody>
+            <thead>
+              <tr class="text-left text-slate-200">
+                <th class="p-3">ROAS</th>
+                <th class="p-3 text-right">Profit/Unit</th>
+                <th class="p-3 text-right">Profit %</th>
+                <th class="p-3">Status</th>
+              </tr>
+            </thead>
+            <tbody id="simulation-table-body" class="divide-y divide-slate-800/60 text-slate-300"></tbody>
           </table>
         </div>
       </div>
@@ -291,13 +330,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const tbody = $('#simulation-table-body');
     const bepNum = parseFloat(roas_bep);
     const recoNum = parseFloat(roas_rekomendasi);
-    tbody.innerHTML = data.simulasi.map(d => {
-      const profitClass = d.profit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400';
+    tbody.innerHTML = simulasi.map(d => {
+      const profitClass = d.profit >= 0 ? 'text-emerald-300' : 'text-rose-300';
       let rowClass = '';
       if (!isNaN(recoNum) && Math.abs(d.roas - recoNum) < 0.1) rowClass = 'highlight-reco';
       if (!isNaN(bepNum) && Math.abs(d.roas - bepNum) < 0.1) rowClass = 'highlight-bep';
       const status = statusFrom(d.roas, d.profit, roas_bep, roas_rekomendasi);
-      return `<tr class="\${rowClass}"><td class="p-2 font-semibold">\${d.roas.toFixed(1)}</td><td class="p-2 text-right font-mono \${profitClass}">\${formatRp(d.profit)}</td><td class="p-2 text-right font-mono \${profitClass}">\${d.profit_pct.toFixed(2)}%</td><td class="p-2">\${badge(status)}</td></tr>`;
+      return `<tr class="${rowClass}"><td class="p-3 font-semibold">${d.roas.toFixed(1)}</td><td class="p-3 text-right font-mono ${profitClass}">${formatRp(d.profit)}</td><td class="p-3 text-right font-mono ${profitClass}">${d.profit_pct.toFixed(2)}%</td><td class="p-3">${badge(status)}</td></tr>`;
     }).join('');
 
     const needle = $('#gauge-needle');
@@ -310,7 +349,7 @@ document.addEventListener('DOMContentLoaded', () => {
       else if (reco < thr){ angle = ((reco-bep)/(thr-bep))*45 - 30; txt='Profit Tipis'; label.style.color='#f59e0b'; }
       else { angle = Math.min(((reco-thr)/(50-thr))*75 + 15, 90); txt='Sangat Profit!'; label.style.color='#22c55e'; }
     }
-    needle.style.transform = `rotate(\${angle}deg)`;
+    needle.style.transform = `rotate(${angle}deg)`;
     label.textContent = txt;
 
     $('#result-area').addEventListener('click', e => {
@@ -325,7 +364,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const fd = new FormData(ui.form);
     const data = Object.fromEntries(fd.entries());
     if (!data.harga_jual || !data.modal_produk || +data.harga_jual <= 0){
-      ui.area.innerHTML=''; ui.area.appendChild(ui.placeholder); return;
+      ui.area.innerHTML=''; ui.area.appendChild(ui.placeholder.cloneNode(true)); return;
     }
     const result = compute(data);
     render(result);
