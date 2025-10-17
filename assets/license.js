@@ -3,13 +3,49 @@
   const LS_ACTIVE_KEY = 'seller_license_active_code';
   const LS_ACTIVE_META_KEY = 'seller_license_active_meta';
   const LS_CATALOG_KEY = 'seller_license_catalog';
-  const TRIAL_CODE = 'SELLER-TRIAL-1';
+  const LS_USED_CODES_KEY = 'seller_license_used_codes';
+  const LS_TRIAL_USED_KEY = 'seller_license_trial_consumed';
+  const TRIAL_CODE = 'COBADULU';
   const LEGACY_TRIAL_CODES = ['SELLER-TRIAL-7'];
-  const TRIAL_DURATION_MS = 24 * 60 * 60 * 1000; // 1 hari
+  const TRIAL_DURATION_MS = 1 * 60 * 1000; // 1 menit
   const DEFAULT_CODES = [TRIAL_CODE,'SELLER TOOLS PRO 2025','SELLERPRO-2025'];
 
   function isTrialCode(code){
     return [TRIAL_CODE, ...LEGACY_TRIAL_CODES].includes(code);
+  }
+
+  function getUsedCodes(){
+    try{
+      const raw = localStorage.getItem(LS_USED_CODES_KEY);
+      if(!raw) return new Set();
+      const arr = JSON.parse(raw);
+      if(!Array.isArray(arr)) return new Set();
+      return new Set(arr.map(String));
+    }catch(e){ return new Set(); }
+  }
+
+  function persistUsedCodes(set){
+    try{
+      const arr = Array.from(set);
+      localStorage.setItem(LS_USED_CODES_KEY, JSON.stringify(arr));
+    }catch(e){ /* abaikan */ }
+  }
+
+  function markCodeUsed(code){
+    if(!code) return;
+    const used = getUsedCodes();
+    if(!used.has(code)){
+      used.add(code);
+      persistUsedCodes(used);
+    }
+  }
+
+  function hasUsedTrial(){
+    return localStorage.getItem(LS_TRIAL_USED_KEY) === '1';
+  }
+
+  function markTrialUsed(){
+    localStorage.setItem(LS_TRIAL_USED_KEY, '1');
   }
 
   function readActiveState(){
@@ -29,7 +65,11 @@
       // abaikan parsing error dan perlakukan seperti tanpa metadata
     }
 
+    markCodeUsed(code);
     if(isTrialCode(code)){
+      if(!hasUsedTrial()){
+        markTrialUsed();
+      }
       if(!activatedAt){
         activatedAt = Date.now();
         localStorage.setItem(LS_ACTIVE_META_KEY, JSON.stringify({code, activatedAt}));
@@ -37,7 +77,6 @@
       if(Date.now() - activatedAt > TRIAL_DURATION_MS){
         localStorage.removeItem(LS_ACTIVE_KEY);
         localStorage.removeItem(LS_ACTIVE_META_KEY);
-        dispatch(false, null);
         return null;
       }
     }
@@ -49,6 +88,10 @@
     localStorage.setItem(LS_ACTIVE_KEY, code);
     const activatedAt = Date.now();
     localStorage.setItem(LS_ACTIVE_META_KEY, JSON.stringify({code, activatedAt}));
+    markCodeUsed(code);
+    if(isTrialCode(code)){
+      markTrialUsed();
+    }
   }
 
   function getCatalog(){
@@ -67,8 +110,40 @@
     }catch(e){ return false; }
   }
   function normalize(s){ return String(s||'').trim(); }
-  function dispatch(active, code){
-    document.dispatchEvent(new CustomEvent('seller-license-status',{detail:{active, code}}));
+
+  function buildStatusDetail(state){
+    if(!state){
+      return {
+        active:false,
+        code:null,
+        activatedAt:null,
+        expiresAt:null,
+        remainingMs:0,
+        isTrial:false
+      };
+    }
+    const {code, activatedAt} = state;
+    const trial = isTrialCode(code);
+    let expiresAt = null;
+    let remainingMs = null;
+    if(trial && activatedAt){
+      expiresAt = activatedAt + TRIAL_DURATION_MS;
+      remainingMs = Math.max(0, expiresAt - Date.now());
+    }
+    return {
+      active:true,
+      code,
+      activatedAt:activatedAt || null,
+      expiresAt,
+      remainingMs,
+      isTrial:trial
+    };
+  }
+
+  function broadcastStatus(){
+    const detail = buildStatusDetail(evaluateState());
+    document.dispatchEvent(new CustomEvent('seller-license-status',{detail}));
+    return detail;
   }
 
   function clearActiveState(){
@@ -84,22 +159,42 @@
     activate(code){
       const c = normalize(code);
       if(!c) return {ok:false, message:'Masukkan kode lisensi.'};
+      const current = evaluateState();
+      if(current && current.code === c){
+        const detail = broadcastStatus();
+        return {ok:true, code:c, detail};
+      }
       if(!getCatalog().includes(c)) return {ok:false, message:'Kode lisensi tidak dikenal.'};
+      if(isTrialCode(c)){
+        if(hasUsedTrial()){
+          return {ok:false, message:'Lisensi trial sudah pernah digunakan di perangkat ini.'};
+        }
+      }else{
+        const used = getUsedCodes();
+        if(used.has(c)){
+          return {ok:false, message:'Kode lisensi ini sudah pernah digunakan di perangkat ini.'};
+        }
+      }
       persistActiveState(c);
-      dispatch(true, c);
-      return {ok:true, code:c};
+      const detail = broadcastStatus();
+      return {ok:true, code:c, detail};
     },
     deactivate(){
       clearActiveState();
-      dispatch(false, null);
-      return {ok:true};
+      const detail = broadcastStatus();
+      return {ok:true, detail};
     },
     isActive(){
-      return !!evaluateState();
+      return buildStatusDetail(evaluateState()).active;
     },
     getCode(){
-      const state = evaluateState();
-      return state ? state.code : null;
+      return buildStatusDetail(evaluateState()).code;
+    },
+    getStatusDetail(){
+      return buildStatusDetail(evaluateState());
+    },
+    refreshStatus(){
+      return broadcastStatus();
     },
     importCatalog(input, opts){
       try{
@@ -120,5 +215,5 @@
     }
   };
   window.SellerLicense = api;
-  dispatch(api.isActive(), api.getCode());
+  broadcastStatus();
 })();
