@@ -5,15 +5,24 @@
   const LS_CATALOG_KEY = 'seller_license_catalog';
   const LS_USED_CODES_KEY = 'seller_license_used_codes';
   const LS_TRIAL_USED_KEY = 'seller_license_trial_consumed';
-  const TRIAL_CODE = 'COBADULU';
-  const LEGACY_TRIAL_CODES = ['SELLER-TRIAL-7'];
+  const PUBLIC_TRIAL_CODES = Object.freeze([]);
   const TRIAL_DURATION_MS = 1 * 60 * 1000; // 1 menit
-  const DEFAULT_CODES = [TRIAL_CODE,'SELLER TOOLS PRO 2025','SELLERPRO-2025'];
+  const DEFAULT_CODES = Object.freeze([]);
+
+  function maskLicenseCode(code){
+    if(!code) return '';
+    const normalized = String(code).trim();
+    if(!normalized) return '';
+    if(normalized.length <= 4) return normalized;
+    return normalized.replace(/.(?=.{4})/g, '•');
+  }
 
   function isTrialCode(code){
-    const def = getLicenseDefinition(code);
+    const normalized = String(code || '').trim();
+    if(!normalized) return false;
+    const def = getLicenseDefinition(normalized);
     if(def) return def.type === 'trial';
-    return [TRIAL_CODE, ...LEGACY_TRIAL_CODES].includes(code);
+    return PUBLIC_TRIAL_CODES.includes(normalized);
   }
 
   function getUsedCodes(){
@@ -109,10 +118,12 @@
   function getCatalog(){
     try{
       const raw = localStorage.getItem(LS_CATALOG_KEY);
-      if(!raw) return [...DEFAULT_CODES];
+      if(!raw) return Array.from(DEFAULT_CODES);
       const arr = JSON.parse(raw);
-      return Array.isArray(arr) ? Array.from(new Set([...DEFAULT_CODES, ...arr])) : [...DEFAULT_CODES];
-    }catch(e){ return [...DEFAULT_CODES]; }
+      return Array.isArray(arr)
+        ? Array.from(new Set([...DEFAULT_CODES, ...arr]))
+        : Array.from(DEFAULT_CODES);
+    }catch(e){ return Array.from(DEFAULT_CODES); }
   }
   function setCatalog(list){
     try{
@@ -128,6 +139,7 @@
       return {
         active:false,
         code:null,
+        maskedCode:'',
         activatedAt:null,
         expiresAt:null,
         remainingMs:0,
@@ -153,6 +165,7 @@
     return {
       active:true,
       code,
+      maskedCode: maskLicenseCode(code),
       activatedAt:activatedAt || null,
       expiresAt,
       remainingMs,
@@ -182,7 +195,8 @@
       if(!c) return {ok:false, message:'Masukkan kode lisensi.'};
       const current = evaluateState();
       if(current && current.code === c){
-        return {ok:true, code:c};
+        const detail = broadcastStatus();
+        return {ok:true, code:c, maskedCode: maskLicenseCode(c), detail};
       }
       if(!getCatalog().includes(c)) return {ok:false, message:'Kode lisensi tidak dikenal.'};
       if(isTrialCode(c)){
@@ -197,7 +211,7 @@
       }
       persistActiveState(c);
       const detail = broadcastStatus();
-      return {ok:true, code:c, detail};
+      return {ok:true, code:c, maskedCode: maskLicenseCode(c), detail};
     },
     deactivate(){
       clearActiveState();
