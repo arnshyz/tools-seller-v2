@@ -144,7 +144,7 @@
             <div class="rounded-full bg-cyan-500/10 p-3 text-2xl">🔐</div>
           </div>
           <p class="mt-6 text-sm text-slate-300">
-            Masukkan kode lisensi resmi untuk membuka seluruh kalkulator dan fitur pro. Lisensi dapat dipakai di banyak perangkat selama tersambung dengan akun yang sama.
+            Masukkan kode lisensi resmi untuk membuka seluruh kalkulator dan fitur pro. Setiap lisensi otomatis terkunci pada perangkat pertama yang mengaktifkannya.
           </p>
           <ul class="mt-6 space-y-3 text-sm text-slate-300">
             <li class="flex items-center gap-3"><span class="text-cyan-400">▹</span> Kalkulator Harga Jual & Profit</li>
@@ -264,6 +264,13 @@
             <label for="licenseCode" class="text-sm font-semibold text-slate-200">Kode Lisensi</label>
             <input id="licenseCode" name="licenseCode" type="text" placeholder="Masukan Lisensi Disini" class="w-full rounded-2xl border border-slate-700/60 bg-slate-900/70 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/40" required>
           </div>
+          <div class="space-y-2">
+            <label for="licenseMac" class="text-sm font-semibold text-slate-200">MAC Address Perangkat</label>
+            <input id="licenseMac" name="licenseMac" type="text" placeholder="Contoh: AA:BB:CC:DD:EE:FF" class="w-full rounded-2xl border border-slate-700/60 bg-slate-900/70 px-4 py-3 text-sm uppercase tracking-[0.15em] text-slate-100 placeholder:text-slate-500 focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/40" autocomplete="off" spellcheck="false" inputmode="latin" required>
+            <p class="text-xs text-slate-400">Gunakan format 12 digit hexadesimal (AA:BB:CC:DD:EE:FF). Satu MAC address hanya bisa diklaim untuk satu lisensi aktif.</p>
+            <p id="macFeedback" class="text-xs font-semibold"></p>
+            <p id="macRegisteredDisplay" class="text-xs text-slate-500"></p>
+          </div>
           <div class="flex flex-col gap-3 text-sm sm:flex-row">
             <button type="submit" class="flex-1 rounded-full bg-cyan-500 px-5 py-3 font-semibold text-slate-950 transition hover:bg-cyan-400">Aktifkan Lisensi</button>
             <button type="button" id="deactivateBtn" class="flex-1 rounded-full border border-slate-600/70 px-5 py-3 font-semibold text-slate-200 transition hover:border-rose-400/60 hover:text-rose-200">Nonaktifkan</button>
@@ -272,7 +279,7 @@
         </form>
         <div class="mt-10 space-y-4">
           <h3 class="text-lg font-semibold text-slate-100">Opsi Durasi Lisensi</h3>
-          <p class="text-sm text-slate-400">Pilih paket sesuai kebutuhan. Klik salah satu durasi untuk memesan via WhatsApp.</p>
+          <p class="text-sm text-slate-400">Pilih paket sesuai kebutuhan. Klik salah satu durasi untuk memesan via WhatsApp. Setiap kode akan terkunci pada satu MAC address perangkat pertama yang mengaktifkannya.</p>
           <div class="grid gap-4 sm:grid-cols-2">
             <a
               href="https://wa.me/62818404222?text=Halo%20saya%20ingin%20pesan%20lisensi%20AKAY%20durasi%207%20hari"
@@ -348,7 +355,7 @@
       <div class="space-y-6">
         <div class="rounded-3xl border border-slate-800/60 bg-slate-900/60 p-6">
           <h3 class="text-lg font-semibold text-slate-100">Katalog Lisensi</h3>
-          <p class="mt-2 text-sm text-slate-400">Tambahkan daftar kode lisensi ke dalam perangkat ini agar mudah dibagikan ke tim Anda.</p>
+          <p class="mt-2 text-sm text-slate-400">Simpan daftar kode lisensi yang belum dipakai sebagai catatan di perangkat ini sebelum dibagikan ke pembeli.</p>
           <form id="catalogForm" class="mt-4 space-y-3">
             <textarea id="catalogInput" rows="4" placeholder="Masukkan daftar kode dipisah koma atau baris baru" class="w-full rounded-2xl border border-slate-800/60 bg-slate-950/70 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/30"></textarea>
             <div class="flex flex-col gap-2 text-xs text-slate-400">
@@ -378,7 +385,7 @@
             </div>
             <div>
               <dt class="font-semibold text-slate-200">Bisakah digunakan oleh tim?</dt>
-              <dd class="mt-1 text-slate-400">Ya, impor katalog lisensi untuk mendistribusikan kode ke anggota tim lain.</dd>
+              <dd class="mt-1 text-slate-400">Setiap kode lisensi terkunci untuk satu perangkat. Pesan lisensi terpisah untuk tiap perangkat tim.</dd>
             </div>
           </dl>
         </div>
@@ -413,7 +420,41 @@
     const expirySection = document.getElementById('licenseExpirySection');
     const expiryExact = document.getElementById('licenseExpiryExact');
     const expiryCountdown = document.getElementById('licenseExpiryCountdown');
+    const macInput = document.getElementById('licenseMac');
+    const macFeedback = document.getElementById('macFeedback');
+    const macDisplay = document.getElementById('macRegisteredDisplay');
     let countdownInterval = null;
+
+    function setMacFeedback(message = '', tone = 'neutral') {
+      if (!macFeedback) return;
+      macFeedback.textContent = message || '';
+      macFeedback.classList.remove('text-rose-300', 'text-cyan-300');
+      if (!message) {
+        return;
+      }
+      if (tone === 'error') {
+        macFeedback.classList.add('text-rose-300');
+      } else {
+        macFeedback.classList.add('text-cyan-300');
+      }
+    }
+
+    function syncMacDisplay(mac) {
+      if (macInput && mac) {
+        macInput.value = mac;
+      }
+      if (macDisplay) {
+        if (mac) {
+          macDisplay.textContent = `MAC terdaftar: ${mac}`;
+          macDisplay.classList.remove('text-slate-500');
+          macDisplay.classList.add('text-slate-300');
+        } else {
+          macDisplay.textContent = 'MAC address belum terdaftar. Masukkan sebelum aktivasi.';
+          macDisplay.classList.remove('text-slate-300');
+          macDisplay.classList.add('text-slate-500');
+        }
+      }
+    }
 
     function setLockedState(el, locked) {
       const control = el;
@@ -519,6 +560,15 @@
       const feedback = document.getElementById('licenseFeedback');
       const cards = document.querySelectorAll('[data-tool-card]');
       const requiresLicense = document.querySelectorAll('[data-requires-license]');
+      const registeredMac = detail.registeredMac || (window.SellerLicense && typeof window.SellerLicense.getDeviceMac === 'function' ? window.SellerLicense.getDeviceMac() : null);
+
+      syncMacDisplay(registeredMac || '');
+      if (macFeedback && registeredMac && !macFeedback.textContent) {
+        setMacFeedback(`MAC terdaftar: ${registeredMac}`, 'success');
+      }
+      if (macFeedback && !registeredMac && !macFeedback.textContent) {
+        setMacFeedback('', 'neutral');
+      }
 
       const badgeLabel = detail.badgeLabel || (detail.isTrial ? 'Trial Aktif' : 'Aktif');
       badge.textContent = active ? badgeLabel : 'Belum Aktif';
@@ -549,14 +599,22 @@
 
       if (feedback) {
         if (active) {
-          const planDisplay = detail.planLabel || code || 'Tidak diketahui';
-          const durationSuffix = detail.durationLabel && (!planDisplay.toLowerCase().includes(detail.durationLabel.toLowerCase()))
-            ? ` · ${detail.durationLabel}`
-            : '';
-          const codeSuffix = code && planDisplay !== code ? ` (${code})` : '';
-          feedback.textContent = `Lisensi aktif: ${planDisplay}${durationSuffix}${codeSuffix}`;
-          feedback.classList.remove('text-rose-300');
-          feedback.classList.add('text-cyan-300');
+          if (!detail.isClaimOwner) {
+            const claimedInfo = detail.claimedMac ? ` (terkunci di MAC ${detail.claimedMac})` : '';
+            feedback.textContent = `Lisensi ini sudah diklaim di perangkat lain${claimedInfo}. Hubungi admin untuk reset lisensi.`;
+            feedback.classList.remove('text-cyan-300');
+            feedback.classList.add('text-rose-300');
+          } else {
+            const planDisplay = detail.planLabel || code || 'Tidak diketahui';
+            const durationSuffix = detail.durationLabel && (!planDisplay.toLowerCase().includes(detail.durationLabel.toLowerCase()))
+              ? ` · ${detail.durationLabel}`
+              : '';
+            const codeSuffix = code && planDisplay !== code ? ` (${code})` : '';
+            const macSuffix = registeredMac ? ` · MAC ${registeredMac}` : '';
+            feedback.textContent = `Lisensi aktif: ${planDisplay}${durationSuffix}${codeSuffix}${macSuffix} · Terkunci di perangkat ini`;
+            feedback.classList.remove('text-rose-300');
+            feedback.classList.add('text-cyan-300');
+          }
         } else if (!feedback.textContent) {
           feedback.textContent = '';
         }
@@ -590,13 +648,27 @@
       event.preventDefault();
       const input = document.getElementById('licenseCode');
       const feedback = document.getElementById('licenseFeedback');
+      if (macInput) {
+        const macResult = SellerLicense.setDeviceMac(macInput.value);
+        if (!macResult.ok) {
+          setMacFeedback(macResult.message || 'MAC address tidak valid.', 'error');
+          if (typeof SellerLicense.getDeviceMac === 'function') {
+            syncMacDisplay(SellerLicense.getDeviceMac() || '');
+          }
+          macInput.focus();
+          return;
+        }
+        setMacFeedback(`MAC terdaftar: ${macResult.mac}`, 'success');
+        syncMacDisplay(macResult.mac);
+      }
+
       const { ok, message, code } = SellerLicense.activate(input.value);
       if (!ok) {
         feedback.textContent = message || 'Kode lisensi tidak valid.';
         feedback.classList.remove('text-cyan-300');
         feedback.classList.add('text-rose-300');
       } else {
-        feedback.textContent = `Lisensi diaktifkan (${code}).`;
+        feedback.textContent = `Lisensi diaktifkan dan terkunci untuk perangkat ini (${code}).`;
         feedback.classList.remove('text-rose-300');
         feedback.classList.add('text-cyan-300');
         input.value = '';
@@ -610,6 +682,25 @@
       feedback.classList.remove('text-cyan-300');
       feedback.classList.add('text-rose-300');
     });
+
+    if (macInput) {
+      macInput.addEventListener('blur', () => {
+        const value = macInput.value.trim();
+        if (!value) {
+          return;
+        }
+        const macResult = SellerLicense.setDeviceMac(value);
+        if (!macResult.ok) {
+          setMacFeedback(macResult.message || 'MAC address tidak valid.', 'error');
+          if (typeof SellerLicense.getDeviceMac === 'function') {
+            syncMacDisplay(SellerLicense.getDeviceMac() || '');
+          }
+        } else {
+          setMacFeedback(`MAC terdaftar: ${macResult.mac}`, 'success');
+          syncMacDisplay(macResult.mac);
+        }
+      });
+    }
 
     document.getElementById('catalogForm').addEventListener('submit', (event) => {
       event.preventDefault();
