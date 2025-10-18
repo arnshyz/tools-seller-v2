@@ -3,7 +3,6 @@
   const LS_ACTIVE_KEY = 'seller_license_active_code';
   const LS_ACTIVE_META_KEY = 'seller_license_active_meta';
   const LS_CATALOG_KEY = 'seller_license_catalog';
-  const LS_USED_CODES_KEY = 'seller_license_used_codes';
   const LS_TRIAL_USED_KEY = 'seller_license_trial_consumed';
   const LS_DEVICE_ID_KEY = 'seller_license_device_id';
   const LS_CLAIM_REGISTRY_KEY = 'seller_license_claim_registry';
@@ -125,12 +124,19 @@
     return null;
   }
 
-  function persistClaimRecord(code, deviceId){
+  function persistClaimRecord(code, deviceId, claimedAt){
     if(!code || !deviceId) return;
     const registry = Object.assign({}, readClaimRegistry());
     const existing = registry[String(code)];
-    if(existing && existing.deviceId === deviceId) return;
-    registry[String(code)] = {deviceId, claimedAt: Date.now()};
+    const normalizedClaimedAt = typeof claimedAt === 'number' && !Number.isNaN(claimedAt) ? claimedAt : Date.now();
+    if(existing && existing.deviceId === deviceId){
+      if(existing.claimedAt !== normalizedClaimedAt){
+        registry[String(code)] = {deviceId, claimedAt: normalizedClaimedAt};
+        writeClaimRegistry(registry);
+      }
+      return;
+    }
+    registry[String(code)] = {deviceId, claimedAt: normalizedClaimedAt};
     writeClaimRegistry(registry);
   }
 
@@ -228,32 +234,6 @@
     return [TRIAL_CODE, ...LEGACY_TRIAL_CODES].includes(code);
   }
 
-  function getUsedCodes(){
-    try{
-      const raw = localStorage.getItem(LS_USED_CODES_KEY);
-      if(!raw) return new Set();
-      const arr = JSON.parse(raw);
-      if(!Array.isArray(arr)) return new Set();
-      return new Set(arr.map(String));
-    }catch(e){ return new Set(); }
-  }
-
-  function persistUsedCodes(set){
-    try{
-      const arr = Array.from(set);
-      localStorage.setItem(LS_USED_CODES_KEY, JSON.stringify(arr));
-    }catch(e){ /* abaikan */ }
-  }
-
-  function markCodeUsed(code){
-    if(!code) return;
-    const used = getUsedCodes();
-    if(!used.has(code)){
-      used.add(code);
-      persistUsedCodes(used);
-    }
-  }
-
   function hasUsedTrial(){
     return localStorage.getItem(LS_TRIAL_USED_KEY) === '1';
   }
@@ -288,7 +268,6 @@
       // abaikan parsing error dan perlakukan seperti tanpa metadata
     }
 
-    markCodeUsed(code);
     const def = getLicenseDefinition(code);
 
     const claimRecord = getClaimRecord(code);
@@ -302,9 +281,11 @@
       markTrialUsed();
     }
 
-    if(!claimRecord || claimRecord.deviceId !== deviceId){
-      persistClaimRecord(code, deviceId);
+    let claimTimestamp = activatedAt;
+    if(!claimTimestamp && claimRecord && claimRecord.deviceId === deviceId && typeof claimRecord.claimedAt === 'number'){
+      claimTimestamp = claimRecord.claimedAt;
     }
+    persistClaimRecord(code, deviceId, claimTimestamp || Date.now());
 
     const needsActivationTimestamp = def && typeof def.durationMs === 'number' && def.durationMs > 0;
 
@@ -326,11 +307,14 @@
   }
 
   function persistActiveState(code){
-    const activatedAt = Date.now();
+    const deviceId = resolveDeviceId();
+    const claim = getClaimRecord(code);
+    const baseTimestamp = claim && claim.deviceId === deviceId && typeof claim.claimedAt === 'number'
+      ? claim.claimedAt
+      : Date.now();
     localStorage.setItem(LS_ACTIVE_KEY, code);
-    localStorage.setItem(LS_ACTIVE_META_KEY, JSON.stringify({code, activatedAt}));
-    markCodeUsed(code);
-    persistClaimRecord(code, resolveDeviceId());
+    localStorage.setItem(LS_ACTIVE_META_KEY, JSON.stringify({code, activatedAt: baseTimestamp}));
+    persistClaimRecord(code, deviceId, baseTimestamp);
     if(isTrialCode(code)){
       markTrialUsed();
     }
@@ -421,14 +405,16 @@
       if(claim && claim.deviceId && claim.deviceId !== deviceId){
         return {ok:false, message:'Kode lisensi ini sudah diklaim di perangkat lain.'};
       }
+      const def = getLicenseDefinition(c);
+      if(claim && claim.deviceId === deviceId && def && typeof def.durationMs === 'number' && def.durationMs > 0){
+        const claimedAt = typeof claim.claimedAt === 'number' ? claim.claimedAt : null;
+        if(claimedAt && (claimedAt + def.durationMs) <= Date.now()){
+          return {ok:false, message:'Masa aktif lisensi ini sudah habis. Pesan kode baru.'};
+        }
+      }
       if(isTrialCode(c)){
         if(hasUsedTrial()){
           return {ok:false, message:'Lisensi trial sudah pernah digunakan di perangkat ini.'};
-        }
-      }else{
-        const used = getUsedCodes();
-        if(used.has(c)){
-          return {ok:false, message:'Kode lisensi ini sudah pernah digunakan di perangkat ini.'};
         }
       }
       persistActiveState(c);
