@@ -60,6 +60,31 @@
       font-size: 1.25rem;
       opacity: 0.85;
     }
+    .floating-whatsapp {
+      position: fixed;
+      bottom: 1.75rem;
+      right: 1.5rem;
+      z-index: 50;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      color: #0f172a;
+      font-weight: 600;
+      border-radius: 9999px;
+      padding: 0.85rem 1.25rem;
+      box-shadow: 0 20px 45px -15px rgba(34, 197, 94, 0.6);
+      transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+    }
+    .floating-whatsapp:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 24px 55px -20px rgba(74, 222, 128, 0.75);
+      opacity: 0.95;
+    }
+    .floating-whatsapp span {
+      font-size: 0.85rem;
+      letter-spacing: 0.02em;
+    }
   </style>
 </head>
 <body>
@@ -119,16 +144,21 @@
             <div class="rounded-full bg-cyan-500/10 p-3 text-2xl">🔐</div>
           </div>
           <p class="mt-6 text-sm text-slate-300">
-            Masukkan kode lisensi resmi untuk membuka seluruh kalkulator dan fitur pro. Lisensi dapat dipakai di banyak perangkat selama tersambung dengan akun yang sama.
+            Masukkan kode lisensi resmi untuk membuka seluruh kalkulator dan fitur pro. Setiap lisensi otomatis terkunci pada perangkat pertama yang mengaktifkannya.
           </p>
           <ul class="mt-6 space-y-3 text-sm text-slate-300">
             <li class="flex items-center gap-3"><span class="text-cyan-400">▹</span> Kalkulator Harga Jual & Profit</li>
             <li class="flex items-center gap-3"><span class="text-cyan-400">▹</span> Kalkulator HPP Otomatis</li>
+            <li class="flex items-center gap-3"><span class="text-cyan-400">▹</span> Kalkulator Multi Produk</li>
             <li class="flex items-center gap-3"><span class="text-cyan-400">▹</span> Kalkulator ROAS & Untung</li>
             <li class="flex items-center gap-3"><span class="text-cyan-400">▹</span> Tools bonus eksklusif</li>
           </ul>
+          <div id="licenseExpirySection" class="mt-6 hidden rounded-2xl border border-cyan-500/40 bg-cyan-500/10 p-4 text-xs text-cyan-100 shadow-inner shadow-cyan-500/20">
+            <p id="licenseExpiryExact" class="text-sm font-semibold text-cyan-100"></p>
+            <p id="licenseExpiryCountdown" class="mt-1 text-xs text-cyan-100/80"></p>
+          </div>
           <div class="mt-8 space-y-3 text-xs text-slate-400">
-            
+
             <p>Kode lisensi Anda aman tersimpan secara lokal di browser.</p>
           </div>
         </div>
@@ -152,6 +182,17 @@
           <p class="mt-3 text-sm text-slate-400">Hitung margin Shopee/Tokopedia otomatis termasuk promo dan biaya admin.</p>
           <a data-requires-license href="kalkulator-harga/" class="mt-6 inline-flex items-center gap-2 rounded-full bg-slate-800 px-4 py-2 text-xs font-semibold text-slate-200 transition group-hover:bg-cyan-500/90 group-hover:text-slate-950">
             Gunakan Kalkulator
+            <span class="text-base transition group-hover:translate-x-1">→</span>
+          </a>
+        </article>
+        <article class="group relative overflow-hidden rounded-2xl border border-slate-800/70 bg-slate-900/60 p-6 transition hover:border-cyan-400/50" data-tool-card>
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-slate-100">Kalkulator Multi Produk</h3>
+            <span class="text-xs font-semibold uppercase tracking-wide text-cyan-300">Pro</span>
+          </div>
+          <p class="mt-3 text-sm text-slate-400">Analisa omzet, biaya, dan profit gabungan untuk banyak SKU sekaligus.</p>
+          <a data-requires-license href="kalkulator-multi-produk/" class="mt-6 inline-flex items-center gap-2 rounded-full bg-slate-800 px-4 py-2 text-xs font-semibold text-slate-200 transition group-hover:bg-cyan-500/90 group-hover:text-slate-950">
+            Kelola Portofolio
             <span class="text-base transition group-hover:translate-x-1">→</span>
           </a>
         </article>
@@ -229,11 +270,85 @@
           </div>
           <p id="licenseFeedback" class="text-sm font-medium text-cyan-300"></p>
         </form>
+        <div class="mt-10 space-y-4">
+          <h3 class="text-lg font-semibold text-slate-100">Opsi Durasi Lisensi</h3>
+          <p class="text-sm text-slate-400">Pilih paket sesuai kebutuhan. Klik salah satu durasi untuk memesan via WhatsApp. Setiap kode akan terkunci pada perangkat pertama yang mengaktifkannya.</p>
+          <div class="grid gap-4 sm:grid-cols-2">
+            <a
+              href="https://wa.me/62818404222?text=Halo%20saya%20ingin%20pesan%20lisensi%20AKAY%20durasi%207%20hari"
+              target="_blank"
+              rel="noopener"
+              class="group block rounded-2xl border border-cyan-500/40 bg-cyan-500/10 p-4 transition hover:border-cyan-400/70 hover:bg-cyan-500/20"
+              aria-label="Pesan lisensi 7 hari via WhatsApp"
+            >
+              <div class="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-cyan-200">
+                <span>7 Hari</span>
+                <span>Trial lanjutan</span>
+              </div>
+              <p class="mt-2 text-base font-semibold text-slate-100">Akses penuh satu minggu untuk validasi fitur.</p>
+              <div class="mt-4 inline-flex items-center gap-2 rounded-full border border-cyan-300/60 bg-cyan-300/10 px-3 py-1 text-xs font-semibold text-cyan-100 transition group-hover:border-cyan-200/80 group-hover:text-cyan-50">
+                <span>💬</span>
+                <span>Pesan via WhatsApp</span>
+              </div>
+            </a>
+            <a
+              href="https://wa.me/62818404222?text=Halo%20saya%20ingin%20pesan%20lisensi%20AKAY%20durasi%201%20bulan"
+              target="_blank"
+              rel="noopener"
+              class="group block rounded-2xl border border-slate-800/70 bg-slate-900/60 p-4 transition hover:border-cyan-400/70 hover:bg-slate-900/80"
+              aria-label="Pesan lisensi 1 bulan via WhatsApp"
+            >
+              <div class="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-cyan-200">
+                <span>1 Bulan</span>
+                <span>Paling populer</span>
+              </div>
+              <p class="mt-2 text-base font-semibold text-slate-100">Pantau performa kampanye penjualan bulanan tanpa batas.</p>
+              <div class="mt-4 inline-flex items-center gap-2 rounded-full border border-cyan-300/40 bg-cyan-300/10 px-3 py-1 text-xs font-semibold text-cyan-100 transition group-hover:border-cyan-200/60 group-hover:text-cyan-50">
+                <span>💬</span>
+                <span>Pesan via WhatsApp</span>
+              </div>
+            </a>
+            <a
+              href="https://wa.me/62818404222?text=Halo%20saya%20ingin%20pesan%20lisensi%20AKAY%20durasi%206%20bulan"
+              target="_blank"
+              rel="noopener"
+              class="group block rounded-2xl border border-slate-800/70 bg-slate-900/60 p-4 transition hover:border-cyan-400/70 hover:bg-slate-900/80"
+              aria-label="Pesan lisensi 6 bulan via WhatsApp"
+            >
+              <div class="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-cyan-200">
+                <span>6 Bulan</span>
+                <span>Hemat</span>
+              </div>
+              <p class="mt-2 text-base font-semibold text-slate-100">Lindungi pertumbuhan semester dengan akses stabil dan terjaga.</p>
+              <div class="mt-4 inline-flex items-center gap-2 rounded-full border border-cyan-300/40 bg-cyan-300/10 px-3 py-1 text-xs font-semibold text-cyan-100 transition group-hover:border-cyan-200/60 group-hover:text-cyan-50">
+                <span>💬</span>
+                <span>Pesan via WhatsApp</span>
+              </div>
+            </a>
+            <a
+              href="https://wa.me/62818404222?text=Halo%20saya%20ingin%20pesan%20lisensi%20AKAY%20durasi%201%20tahun"
+              target="_blank"
+              rel="noopener"
+              class="group block rounded-2xl border border-slate-800/70 bg-slate-900/60 p-4 transition hover:border-cyan-400/70 hover:bg-slate-900/80"
+              aria-label="Pesan lisensi 1 tahun via WhatsApp"
+            >
+              <div class="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-cyan-200">
+                <span>1 Tahun</span>
+                <span>Paling lengkap</span>
+              </div>
+              <p class="mt-2 text-base font-semibold text-slate-100">Kontrol seluruh kalkulator sepanjang tahun dengan update rutin.</p>
+              <div class="mt-4 inline-flex items-center gap-2 rounded-full border border-cyan-300/40 bg-cyan-300/10 px-3 py-1 text-xs font-semibold text-cyan-100 transition group-hover:border-cyan-200/60 group-hover:text-cyan-50">
+                <span>💬</span>
+                <span>Pesan via WhatsApp</span>
+              </div>
+            </a>
+          </div>
+        </div>
       </div>
       <div class="space-y-6">
         <div class="rounded-3xl border border-slate-800/60 bg-slate-900/60 p-6">
           <h3 class="text-lg font-semibold text-slate-100">Katalog Lisensi</h3>
-          <p class="mt-2 text-sm text-slate-400">Tambahkan daftar kode lisensi ke dalam perangkat ini agar mudah dibagikan ke tim Anda.</p>
+          <p class="mt-2 text-sm text-slate-400">Simpan daftar kode lisensi yang belum dipakai sebagai catatan di perangkat ini sebelum dibagikan ke pembeli.</p>
           <form id="catalogForm" class="mt-4 space-y-3">
             <textarea id="catalogInput" rows="4" placeholder="Masukkan daftar kode dipisah koma atau baris baru" class="w-full rounded-2xl border border-slate-800/60 bg-slate-950/70 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/30"></textarea>
             <div class="flex flex-col gap-2 text-xs text-slate-400">
@@ -259,11 +374,11 @@
             </div>
             <div>
               <dt class="font-semibold text-slate-200">Berapa lama lisensi berlaku?</dt>
-              <dd class="mt-1 text-slate-400">Lisensi reguler berlaku satu tahun dan dapat diperpanjang kapan saja.</dd>
+              <dd class="mt-1 text-slate-400">Tersedia paket 7 hari, 1 bulan, 6 bulan, hingga 1 tahun. Setelah masa aktif berakhir cukup masukkan kode baru.</dd>
             </div>
             <div>
               <dt class="font-semibold text-slate-200">Bisakah digunakan oleh tim?</dt>
-              <dd class="mt-1 text-slate-400">Ya, impor katalog lisensi untuk mendistribusikan kode ke anggota tim lain.</dd>
+              <dd class="mt-1 text-slate-400">Setiap kode lisensi terkunci untuk satu perangkat. Pesan lisensi terpisah untuk tiap perangkat tim.</dd>
             </div>
           </dl>
         </div>
@@ -281,9 +396,24 @@
     </div>
   </footer>
 
+  <a
+    href="https://wa.me/62818404222?text=Halo%20saya%20ingin%20pesan%20lisensi"
+    class="floating-whatsapp"
+    target="_blank"
+    rel="noopener"
+    aria-label="Chat lisensi via WhatsApp"
+  >
+    <span>💬</span>
+    <span>WhatsApp Lisensi</span>
+  </a>
+
   <script src="./assets/license.js"></script>
   <script>
     const lockedTargets = new Set();
+    const expirySection = document.getElementById('licenseExpirySection');
+    const expiryExact = document.getElementById('licenseExpiryExact');
+    const expiryCountdown = document.getElementById('licenseExpiryCountdown');
+    let countdownInterval = null;
 
     function setLockedState(el, locked) {
       const control = el;
@@ -298,14 +428,99 @@
       }
     }
 
-    function updateLicenseUI(active, code) {
+    function stopCountdown() {
+      if (countdownInterval) {
+        clearInterval(countdownInterval);
+        countdownInterval = null;
+      }
+    }
+
+    function formatDateTime(timestamp) {
+      const date = new Date(timestamp);
+      if (Number.isNaN(date.getTime())) return '';
+      const dateStr = date.toLocaleDateString('id-ID', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: '2-digit',
+      });
+      const timeStr = date.toLocaleTimeString('id-ID', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      });
+      return `${dateStr} ${timeStr}`;
+    }
+
+    function formatRemaining(ms) {
+      const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+      const days = Math.floor(totalSeconds / 86400);
+      const hours = Math.floor((totalSeconds % 86400) / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+      const parts = [];
+      if (days > 0) {
+        parts.push(`${days} hari`);
+      }
+      parts.push(`${String(hours).padStart(2, '0')} jam`);
+      parts.push(`${String(minutes).padStart(2, '0')} menit`);
+      parts.push(`${String(seconds).padStart(2, '0')} detik`);
+      return parts.join(' ');
+    }
+
+    function renderExpiry(detail) {
+      if (!expirySection || !expiryExact || !expiryCountdown) return false;
+      if (!detail || !detail.active || !detail.expiresAt) {
+        expirySection.classList.add('hidden');
+        return false;
+      }
+
+      expirySection.classList.remove('hidden');
+      const planName = detail.planLabel || 'Lisensi';
+      const exactText = formatDateTime(detail.expiresAt);
+      expiryExact.textContent = exactText ? `${planName} berakhir pada ${exactText}` : `${planName} berakhir segera`;
+
+      const remaining = detail.expiresAt - Date.now();
+      if (remaining <= 0) {
+        expiryCountdown.textContent = 'Lisensi telah kedaluwarsa.';
+        const feedback = document.getElementById('licenseFeedback');
+        if (feedback) {
+          feedback.textContent = 'Lisensi telah kedaluwarsa. Masukkan kode baru untuk melanjutkan.';
+          feedback.classList.remove('text-cyan-300');
+          feedback.classList.add('text-rose-300');
+        }
+        SellerLicense.refreshStatus();
+        return false;
+      }
+
+      expiryCountdown.textContent = `Sisa waktu: ${formatRemaining(remaining)}`;
+      return true;
+    }
+
+    function startCountdown(detail) {
+      stopCountdown();
+      if (!renderExpiry(detail)) {
+        return;
+      }
+
+      countdownInterval = setInterval(() => {
+        const latest = SellerLicense.getStatusDetail();
+        if (!renderExpiry(latest)) {
+          stopCountdown();
+        }
+      }, 1000);
+    }
+
+    function updateLicenseUIFromDetail(detail = {}) {
+      const active = !!detail.active;
+      const code = detail.code || null;
       const statusText = document.getElementById('licenseStatusText');
       const badge = document.getElementById('licenseBadge');
       const feedback = document.getElementById('licenseFeedback');
       const cards = document.querySelectorAll('[data-tool-card]');
       const requiresLicense = document.querySelectorAll('[data-requires-license]');
-
-      badge.textContent = active ? 'Aktif' : 'Belum Aktif';
+      const badgeLabel = detail.badgeLabel || (detail.isTrial ? 'Trial Aktif' : 'Aktif');
+      badge.textContent = active ? badgeLabel : 'Belum Aktif';
       statusText.textContent = active ? 'Terbuka' : 'Terkunci';
 
       cards.forEach(card => {
@@ -331,8 +546,25 @@
         }
       });
 
-      if (feedback && active) {
-        feedback.textContent = `Lisensi aktif: ${code || 'Tidak diketahui'}`;
+      if (feedback) {
+        if (active) {
+          if (!detail.isClaimOwner) {
+            feedback.textContent = 'Lisensi ini sudah diklaim di perangkat lain. Hubungi admin untuk reset lisensi.';
+            feedback.classList.remove('text-cyan-300');
+            feedback.classList.add('text-rose-300');
+          } else {
+            const planDisplay = detail.planLabel || code || 'Tidak diketahui';
+            const durationSuffix = detail.durationLabel && (!planDisplay.toLowerCase().includes(detail.durationLabel.toLowerCase()))
+              ? ` · ${detail.durationLabel}`
+              : '';
+            const codeSuffix = code && planDisplay !== code ? ` (${code})` : '';
+            feedback.textContent = `Lisensi aktif: ${planDisplay}${durationSuffix}${codeSuffix} · Terkunci di perangkat ini`;
+            feedback.classList.remove('text-rose-300');
+            feedback.classList.add('text-cyan-300');
+          }
+        } else if (!feedback.textContent) {
+          feedback.textContent = '';
+        }
       }
 
       const deactivateBtn = document.getElementById('deactivateBtn');
@@ -341,11 +573,19 @@
         deactivateBtn.classList.toggle('opacity-60', !active);
         deactivateBtn.classList.toggle('pointer-events-none', !active);
       }
+
+      if (expirySection) {
+        if (active && detail.expiresAt) {
+          startCountdown(detail);
+        } else {
+          stopCountdown();
+          expirySection.classList.add('hidden');
+        }
+      }
     }
 
     document.addEventListener('seller-license-status', (event) => {
-      const { active, code } = event.detail || {};
-      updateLicenseUI(!!active, code);
+      updateLicenseUIFromDetail(event.detail || {});
     });
 
     document.getElementById('year').textContent = new Date().getFullYear();
@@ -361,7 +601,7 @@
         feedback.classList.remove('text-cyan-300');
         feedback.classList.add('text-rose-300');
       } else {
-        feedback.textContent = `Lisensi diaktifkan (${code}).`;
+        feedback.textContent = `Lisensi diaktifkan dan terkunci untuk perangkat ini (${code}).`;
         feedback.classList.remove('text-rose-300');
         feedback.classList.add('text-cyan-300');
         input.value = '';
@@ -395,7 +635,7 @@
     });
 
     // initial hydration from existing state
-    updateLicenseUI(SellerLicense.isActive(), SellerLicense.getCode());
+    updateLicenseUIFromDetail(SellerLicense.getStatusDetail());
   </script>
 </body>
 </html>
