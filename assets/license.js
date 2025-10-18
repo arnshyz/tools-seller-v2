@@ -6,7 +6,6 @@
   const LS_USED_CODES_KEY = 'seller_license_used_codes';
   const LS_TRIAL_USED_KEY = 'seller_license_trial_consumed';
   const LS_DEVICE_ID_KEY = 'seller_license_device_id';
-  const LS_DEVICE_MAC_KEY = 'seller_license_device_mac';
   const LS_CLAIM_REGISTRY_KEY = 'seller_license_claim_registry';
 
   const MS = {
@@ -18,7 +17,6 @@
   const TRIAL_DURATION_MS = 1 * MS.MINUTE; // 1 menit
 
   let deviceIdCache = null;
-  let deviceMacCache;
   let fingerprintCache = null;
   let claimRegistryCache = null;
 
@@ -80,47 +78,7 @@
     return generated;
   }
 
-  function normalizeMacAddress(value){
-    if(!value) return null;
-    let cleaned = String(value).trim().toUpperCase();
-    if(!cleaned) return null;
-    cleaned = cleaned.replace(/[^0-9A-F]/g, '');
-    if(cleaned.length !== 12) return null;
-    const pairs = cleaned.match(/.{1,2}/g);
-    if(!pairs || pairs.length !== 6) return null;
-    return pairs.join(':');
-  }
-
-  function readStoredMac(){
-    if(deviceMacCache !== undefined) return deviceMacCache;
-    try{
-      const raw = localStorage.getItem(LS_DEVICE_MAC_KEY);
-      if(raw){
-        deviceMacCache = raw;
-        return raw;
-      }
-    }catch(e){ /* abaikan */ }
-    deviceMacCache = null;
-    return null;
-  }
-
-  function persistDeviceMac(mac){
-    deviceMacCache = mac || null;
-    try{
-      if(mac){
-        localStorage.setItem(LS_DEVICE_MAC_KEY, mac);
-      }else{
-        localStorage.removeItem(LS_DEVICE_MAC_KEY);
-      }
-    }catch(e){ /* abaikan */ }
-    deviceIdCache = null;
-  }
-
   function computeDeviceId(){
-    const mac = readStoredMac();
-    if(mac){
-      return `mac-${hashString(`mac::${mac}`)}`;
-    }
     return ensureFingerprintId();
   }
 
@@ -161,8 +119,7 @@
     if(record && typeof record === 'object'){
       return {
         deviceId: record.deviceId || null,
-        claimedAt: typeof record.claimedAt === 'number' ? record.claimedAt : null,
-        mac: record.mac || null
+        claimedAt: typeof record.claimedAt === 'number' ? record.claimedAt : null
       };
     }
     return null;
@@ -173,7 +130,7 @@
     const registry = Object.assign({}, readClaimRegistry());
     const existing = registry[String(code)];
     if(existing && existing.deviceId === deviceId) return;
-    registry[String(code)] = {deviceId, claimedAt: Date.now(), mac: readStoredMac() || null};
+    registry[String(code)] = {deviceId, claimedAt: Date.now()};
     writeClaimRegistry(registry);
   }
 
@@ -410,8 +367,6 @@
         durationLabel:null,
         claimedDeviceId:null,
         claimedAt:null,
-        claimedMac:null,
-        registeredMac: readStoredMac(),
         isClaimOwner:false
       };
     }
@@ -437,8 +392,6 @@
       durationLabel: def ? def.durationLabel : null,
       claimedDeviceId: claimRecord ? claimRecord.deviceId : null,
       claimedAt: claimRecord ? claimRecord.claimedAt : null,
-      claimedMac: claimRecord ? claimRecord.mac : null,
-      registeredMac: readStoredMac(),
       isClaimOwner: !!(claimRecord && claimRecord.deviceId === resolveDeviceId())
     };
   }
@@ -463,15 +416,10 @@
         return {ok:true, code:c, detail};
       }
       if(!getCatalog().includes(c)) return {ok:false, message:'Kode lisensi tidak dikenal.'};
-      const mac = readStoredMac();
-      if(!mac){
-        return {ok:false, message:'Masukkan MAC address perangkat sebelum mengaktifkan lisensi.'};
-      }
       const deviceId = resolveDeviceId();
       const claim = getClaimRecord(c);
       if(claim && claim.deviceId && claim.deviceId !== deviceId){
-        const macInfo = claim.mac ? ` (tercatat pada MAC ${claim.mac})` : '';
-        return {ok:false, message:`Kode lisensi ini sudah diklaim di perangkat lain${macInfo}.`};
+        return {ok:false, message:'Kode lisensi ini sudah diklaim di perangkat lain.'};
       }
       if(isTrialCode(c)){
         if(hasUsedTrial()){
@@ -507,38 +455,6 @@
     getDeviceId(){
       return resolveDeviceId();
     },
-    getDeviceMac(){
-      return readStoredMac();
-    },
-    setDeviceMac(value){
-      const normalized = normalizeMacAddress(value);
-      if(!normalized){
-        return {ok:false, message:'Format MAC address tidak valid. Gunakan format XX:XX:XX:XX:XX:XX.'};
-      }
-      const currentMac = readStoredMac();
-      if(currentMac === normalized){
-        deviceIdCache = null;
-        const detail = broadcastStatus();
-        return {ok:true, mac: normalized, detail};
-      }
-      const previousMac = currentMac || null;
-      persistDeviceMac(normalized);
-      const currentState = evaluateState();
-      let detail = null;
-      if(currentState && currentState.code){
-        const claim = getClaimRecord(currentState.code);
-        const deviceId = resolveDeviceId();
-        if(claim && claim.deviceId && claim.deviceId !== deviceId){
-          persistDeviceMac(previousMac);
-          deviceIdCache = null;
-          detail = broadcastStatus();
-          return {ok:false, message:'MAC address berbeda dengan data klaim lisensi sebelumnya. Menggunakan MAC sebelumnya.', detail};
-        }
-        persistClaimRecord(currentState.code, deviceId);
-      }
-      detail = broadcastStatus();
-      return {ok:true, mac: normalized, detail};
-    },
     getClaimInfo(inputCode){
       const detail = buildStatusDetail(evaluateState());
       const targetCode = normalize(inputCode) || detail.code || null;
@@ -549,7 +465,6 @@
         code: targetCode,
         deviceId: record.deviceId,
         claimedAt: record.claimedAt,
-        claimedMac: record.mac || null,
         isCurrentDevice: record.deviceId === resolveDeviceId()
       };
     },

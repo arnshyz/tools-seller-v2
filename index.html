@@ -279,7 +279,7 @@
         </form>
         <div class="mt-10 space-y-4">
           <h3 class="text-lg font-semibold text-slate-100">Opsi Durasi Lisensi</h3>
-          <p class="text-sm text-slate-400">Pilih paket sesuai kebutuhan. Klik salah satu durasi untuk memesan via WhatsApp. Setiap kode akan terkunci pada satu MAC address perangkat pertama yang mengaktifkannya.</p>
+          <p class="text-sm text-slate-400">Pilih paket sesuai kebutuhan. Klik salah satu durasi untuk memesan via WhatsApp. Setiap kode akan terkunci pada perangkat pertama yang mengaktifkannya.</p>
           <div class="grid gap-4 sm:grid-cols-2">
             <a
               href="https://wa.me/62818404222?text=Halo%20saya%20ingin%20pesan%20lisensi%20AKAY%20durasi%207%20hari"
@@ -420,41 +420,7 @@
     const expirySection = document.getElementById('licenseExpirySection');
     const expiryExact = document.getElementById('licenseExpiryExact');
     const expiryCountdown = document.getElementById('licenseExpiryCountdown');
-    const macInput = document.getElementById('licenseMac');
-    const macFeedback = document.getElementById('macFeedback');
-    const macDisplay = document.getElementById('macRegisteredDisplay');
     let countdownInterval = null;
-
-    function setMacFeedback(message = '', tone = 'neutral') {
-      if (!macFeedback) return;
-      macFeedback.textContent = message || '';
-      macFeedback.classList.remove('text-rose-300', 'text-cyan-300');
-      if (!message) {
-        return;
-      }
-      if (tone === 'error') {
-        macFeedback.classList.add('text-rose-300');
-      } else {
-        macFeedback.classList.add('text-cyan-300');
-      }
-    }
-
-    function syncMacDisplay(mac) {
-      if (macInput && mac) {
-        macInput.value = mac;
-      }
-      if (macDisplay) {
-        if (mac) {
-          macDisplay.textContent = `MAC terdaftar: ${mac}`;
-          macDisplay.classList.remove('text-slate-500');
-          macDisplay.classList.add('text-slate-300');
-        } else {
-          macDisplay.textContent = 'MAC address belum terdaftar. Masukkan sebelum aktivasi.';
-          macDisplay.classList.remove('text-slate-300');
-          macDisplay.classList.add('text-slate-500');
-        }
-      }
-    }
 
     function setLockedState(el, locked) {
       const control = el;
@@ -560,16 +526,6 @@
       const feedback = document.getElementById('licenseFeedback');
       const cards = document.querySelectorAll('[data-tool-card]');
       const requiresLicense = document.querySelectorAll('[data-requires-license]');
-      const registeredMac = detail.registeredMac || (window.SellerLicense && typeof window.SellerLicense.getDeviceMac === 'function' ? window.SellerLicense.getDeviceMac() : null);
-
-      syncMacDisplay(registeredMac || '');
-      if (macFeedback && registeredMac && !macFeedback.textContent) {
-        setMacFeedback(`MAC terdaftar: ${registeredMac}`, 'success');
-      }
-      if (macFeedback && !registeredMac && !macFeedback.textContent) {
-        setMacFeedback('', 'neutral');
-      }
-
       const badgeLabel = detail.badgeLabel || (detail.isTrial ? 'Trial Aktif' : 'Aktif');
       badge.textContent = active ? badgeLabel : 'Belum Aktif';
       statusText.textContent = active ? 'Terbuka' : 'Terkunci';
@@ -600,8 +556,7 @@
       if (feedback) {
         if (active) {
           if (!detail.isClaimOwner) {
-            const claimedInfo = detail.claimedMac ? ` (terkunci di MAC ${detail.claimedMac})` : '';
-            feedback.textContent = `Lisensi ini sudah diklaim di perangkat lain${claimedInfo}. Hubungi admin untuk reset lisensi.`;
+            feedback.textContent = 'Lisensi ini sudah diklaim di perangkat lain. Hubungi admin untuk reset lisensi.';
             feedback.classList.remove('text-cyan-300');
             feedback.classList.add('text-rose-300');
           } else {
@@ -610,8 +565,7 @@
               ? ` · ${detail.durationLabel}`
               : '';
             const codeSuffix = code && planDisplay !== code ? ` (${code})` : '';
-            const macSuffix = registeredMac ? ` · MAC ${registeredMac}` : '';
-            feedback.textContent = `Lisensi aktif: ${planDisplay}${durationSuffix}${codeSuffix}${macSuffix} · Terkunci di perangkat ini`;
+            feedback.textContent = `Lisensi aktif: ${planDisplay}${durationSuffix}${codeSuffix} · Terkunci di perangkat ini`;
             feedback.classList.remove('text-rose-300');
             feedback.classList.add('text-cyan-300');
           }
