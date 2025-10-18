@@ -1,4 +1,4 @@
-// Minimal client-side license module with localStorage.
+// Minimal client-side license module dengan penyimpanan localStorage.
 (function(){
   const LS_ACTIVE_KEY = 'seller_license_active_code';
   const LS_ACTIVE_META_KEY = 'seller_license_active_meta';
@@ -11,6 +11,8 @@
   const DEFAULT_CODES = [TRIAL_CODE,'SELLER TOOLS PRO 2025','SELLERPRO-2025'];
 
   function isTrialCode(code){
+    const def = getLicenseDefinition(code);
+    if(def) return def.type === 'trial';
     return [TRIAL_CODE, ...LEGACY_TRIAL_CODES].includes(code);
   }
 
@@ -53,12 +55,16 @@
     if(!code) return null;
 
     let activatedAt = null;
+    let metaPayload = null;
     try {
       const raw = localStorage.getItem(LS_ACTIVE_META_KEY);
       if(raw){
         const meta = JSON.parse(raw);
-        if(meta && meta.code === code && typeof meta.activatedAt === 'number'){
-          activatedAt = meta.activatedAt;
+        if(meta && meta.code === code){
+          if(typeof meta.activatedAt === 'number'){
+            activatedAt = meta.activatedAt;
+          }
+          metaPayload = meta;
         }
       }
     } catch(e) {
@@ -86,6 +92,11 @@
   }
 
   function persistActiveState(code){
+    const deviceId = resolveDeviceId();
+    const claim = getClaimRecord(code);
+    const baseTimestamp = claim && claim.deviceId === deviceId && typeof claim.claimedAt === 'number'
+      ? claim.claimedAt
+      : Date.now();
     localStorage.setItem(LS_ACTIVE_KEY, code);
     const activatedAt = Date.now();
     localStorage.setItem(LS_ACTIVE_META_KEY, JSON.stringify({code, activatedAt}));
@@ -111,17 +122,58 @@
     }catch(e){ return false; }
   }
   function normalize(s){ return String(s||'').trim(); }
-  function dispatch(active, code){
-    document.dispatchEvent(new CustomEvent('seller-license-status',{detail:{active, code}}));
-  }
 
-  function clearActiveState(){
-    localStorage.removeItem(LS_ACTIVE_KEY);
-    localStorage.removeItem(LS_ACTIVE_META_KEY);
+  function buildStatusDetail(state){
+    if(!state){
+      return {
+        active:false,
+        code:null,
+        activatedAt:null,
+        expiresAt:null,
+        remainingMs:0,
+        isTrial:false,
+        planLabel:null,
+        badgeLabel:null,
+        durationLabel:null,
+        claimedDeviceId:null,
+        claimedAt:null,
+        isClaimOwner:false
+      };
+    }
+    const {code, activatedAt} = state;
+    const def = getLicenseDefinition(code);
+    const trial = isTrialCode(code);
+    const claimRecord = getClaimRecord(code);
+    let expiresAt = null;
+    let remainingMs = null;
+    if(def && typeof def.durationMs === 'number' && def.durationMs > 0 && activatedAt){
+      expiresAt = activatedAt + def.durationMs;
+      remainingMs = Math.max(0, expiresAt - Date.now());
+    }
+    return {
+      active:true,
+      code,
+      activatedAt:activatedAt || null,
+      expiresAt,
+      remainingMs,
+      isTrial:trial,
+      planLabel: def ? def.label : null,
+      badgeLabel: def ? def.badgeLabel : null,
+      durationLabel: def ? def.durationLabel : null,
+      claimedDeviceId: claimRecord ? claimRecord.deviceId : null,
+      claimedAt: claimRecord ? claimRecord.claimedAt : null,
+      isClaimOwner: !!(claimRecord && claimRecord.deviceId === resolveDeviceId())
+    };
   }
 
   function evaluateState(){
     return readActiveState();
+  }
+
+  function broadcastStatus(){
+    const detail = buildStatusDetail(evaluateState());
+    document.dispatchEvent(new CustomEvent('seller-license-status',{detail}));
+    return detail;
   }
 
   const api = {
@@ -144,20 +196,41 @@
         }
       }
       persistActiveState(c);
-      dispatch(true, c);
-      return {ok:true, code:c};
+      const detail = broadcastStatus();
+      return {ok:true, code:c, detail};
     },
     deactivate(){
       clearActiveState();
-      dispatch(false, null);
-      return {ok:true};
+      const detail = broadcastStatus();
+      return {ok:true, detail};
     },
     isActive(){
-      return !!evaluateState();
+      return buildStatusDetail(evaluateState()).active;
     },
     getCode(){
-      const state = evaluateState();
-      return state ? state.code : null;
+      return buildStatusDetail(evaluateState()).code;
+    },
+    getStatusDetail(){
+      return buildStatusDetail(evaluateState());
+    },
+    refreshStatus(){
+      return broadcastStatus();
+    },
+    getDeviceId(){
+      return resolveDeviceId();
+    },
+    getClaimInfo(inputCode){
+      const detail = buildStatusDetail(evaluateState());
+      const targetCode = normalize(inputCode) || detail.code || null;
+      if(!targetCode) return null;
+      const record = getClaimRecord(targetCode);
+      if(!record) return null;
+      return {
+        code: targetCode,
+        deviceId: record.deviceId,
+        claimedAt: record.claimedAt,
+        isCurrentDevice: record.deviceId === resolveDeviceId()
+      };
     },
     importCatalog(input, opts){
       try{
@@ -178,5 +251,5 @@
     }
   };
   window.SellerLicense = api;
-  dispatch(api.isActive(), api.getCode());
+  broadcastStatus();
 })();
