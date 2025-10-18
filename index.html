@@ -416,6 +416,22 @@
 
   <script src="./assets/license.js"></script>
   <script>
+    (function removeLegacyMacField() {
+      const macInput = document.getElementById('macAddress');
+      if (macInput) {
+        const container = macInput.closest('.space-y-2') || macInput.closest('[data-field]') || macInput.parentElement;
+        if (container && container.remove) {
+          container.remove();
+        } else {
+          macInput.remove();
+        }
+      }
+      document.querySelectorAll('label[for="macAddress"]').forEach((label) => label.remove());
+      document.querySelectorAll('[data-mac-field], [data-mac-helper], #macAddressHint, #macAddressHelper').forEach((el) => {
+        if (el && el.remove) el.remove();
+      });
+    })();
+
     const lockedTargets = new Set();
     const expirySection = document.getElementById('licenseExpirySection');
     const expiryExact = document.getElementById('licenseExpiryExact');

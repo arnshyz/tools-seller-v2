@@ -6,6 +6,7 @@
   const LS_USED_CODES_KEY = 'seller_license_used_codes';
   const LS_TRIAL_USED_KEY = 'seller_license_trial_consumed';
   const LS_DEVICE_ID_KEY = 'seller_license_device_id';
+  const LS_LEGACY_MAC_KEY = 'seller_license_mac_address';
   const LS_CLAIM_REGISTRY_KEY = 'seller_license_claim_registry';
 
   const MS = {
@@ -28,6 +29,16 @@
     }
     return 'd' + (hash >>> 0).toString(16);
   }
+
+  function purgeLegacyMacRecord(){
+    try{
+      if(typeof window !== 'undefined' && window.localStorage){
+        window.localStorage.removeItem(LS_LEGACY_MAC_KEY);
+      }
+    }catch(e){ /* abaikan */ }
+  }
+
+  purgeLegacyMacRecord();
 
   function generateDeviceFingerprint(){
     const nav = typeof navigator !== 'undefined' ? navigator : {};
