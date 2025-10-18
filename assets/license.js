@@ -3,235 +3,43 @@
   const LS_ACTIVE_KEY = 'seller_license_active_code';
   const LS_ACTIVE_META_KEY = 'seller_license_active_meta';
   const LS_CATALOG_KEY = 'seller_license_catalog';
+  const LS_USED_CODES_KEY = 'seller_license_used_codes';
   const LS_TRIAL_USED_KEY = 'seller_license_trial_consumed';
-  const LS_DEVICE_ID_KEY = 'seller_license_device_id';
-  const LS_CLAIM_REGISTRY_KEY = 'seller_license_claim_registry';
-
-  const MS = {
-    MINUTE: 60 * 1000,
-    DAY: 24 * 60 * 60 * 1000
-  };
-
   const TRIAL_CODE = 'COBADULU';
-  const TRIAL_DURATION_MS = 1 * MS.MINUTE; // 1 menit
-
-  let deviceIdCache = null;
-  let fingerprintCache = null;
-  let claimRegistryCache = null;
-
-  function hashString(input){
-    let hash = 0x811c9dc5;
-    for(let i=0;i<input.length;i++){
-      hash ^= input.charCodeAt(i);
-      hash = Math.imul(hash, 16777619);
-    }
-    return 'd' + (hash >>> 0).toString(16);
-  }
-
-  function generateDeviceFingerprint(){
-    const nav = typeof navigator !== 'undefined' ? navigator : {};
-    const screenData = typeof screen !== 'undefined' ? screen : {};
-    let timezone = '';
-    try{
-      const options = Intl.DateTimeFormat().resolvedOptions();
-      timezone = options && options.timeZone ? options.timeZone : '';
-    }catch(e){ /* abaikan */ }
-    const base = [
-      nav.userAgent || '',
-      nav.language || '',
-      String(screenData.colorDepth || ''),
-      String(screenData.width || ''),
-      String(screenData.height || ''),
-      String(timezone || ''),
-      String(new Date().getTimezoneOffset())
-    ].join('::');
-    let randomSegment = '';
-    try{
-      if(window.crypto && window.crypto.getRandomValues){
-        const buffer = new Uint32Array(2);
-        window.crypto.getRandomValues(buffer);
-        randomSegment = buffer.join('-');
-      }else{
-        randomSegment = String(Math.random());
-      }
-    }catch(e){
-      randomSegment = `${Math.random()}-${Date.now()}`;
-    }
-    return hashString(`${base}::${randomSegment}`);
-  }
-
-  function ensureFingerprintId(){
-    if(fingerprintCache) return fingerprintCache;
-    try{
-      const stored = localStorage.getItem(LS_DEVICE_ID_KEY);
-      if(stored){
-        fingerprintCache = stored;
-        return stored;
-      }
-    }catch(e){ /* abaikan */ }
-    const generated = generateDeviceFingerprint();
-    try{
-      localStorage.setItem(LS_DEVICE_ID_KEY, generated);
-    }catch(e){ /* abaikan */ }
-    fingerprintCache = generated;
-    return generated;
-  }
-
-  function computeDeviceId(){
-    return ensureFingerprintId();
-  }
-
-  function resolveDeviceId(){
-    if(deviceIdCache) return deviceIdCache;
-    const id = computeDeviceId();
-    deviceIdCache = id;
-    return id;
-  }
-
-  function readClaimRegistry(){
-    if(claimRegistryCache) return claimRegistryCache;
-    let map = {};
-    try{
-      const raw = localStorage.getItem(LS_CLAIM_REGISTRY_KEY);
-      if(raw){
-        const parsed = JSON.parse(raw);
-        if(parsed && typeof parsed === 'object'){
-          map = parsed;
-        }
-      }
-    }catch(e){ map = {}; }
-    claimRegistryCache = map;
-    return map;
-  }
-
-  function writeClaimRegistry(map){
-    claimRegistryCache = map;
-    try{
-      localStorage.setItem(LS_CLAIM_REGISTRY_KEY, JSON.stringify(map));
-    }catch(e){ /* abaikan */ }
-  }
-
-  function getClaimRecord(code){
-    if(!code) return null;
-    const registry = readClaimRegistry();
-    const record = registry[String(code)];
-    if(record && typeof record === 'object'){
-      return {
-        deviceId: record.deviceId || null,
-        claimedAt: typeof record.claimedAt === 'number' ? record.claimedAt : null
-      };
-    }
-    return null;
-  }
-
-  function persistClaimRecord(code, deviceId, claimedAt){
-    if(!code || !deviceId) return;
-    const registry = Object.assign({}, readClaimRegistry());
-    const existing = registry[String(code)];
-    const normalizedClaimedAt = typeof claimedAt === 'number' && !Number.isNaN(claimedAt) ? claimedAt : Date.now();
-    if(existing && existing.deviceId === deviceId){
-      if(existing.claimedAt !== normalizedClaimedAt){
-        registry[String(code)] = {deviceId, claimedAt: normalizedClaimedAt};
-        writeClaimRegistry(registry);
-      }
-      return;
-    }
-    registry[String(code)] = {deviceId, claimedAt: normalizedClaimedAt};
-    writeClaimRegistry(registry);
-  }
-
-  const LICENSE_VARIANTS = [
-    {
-      code: TRIAL_CODE,
-      type: 'trial',
-      label: 'Trial 1 Menit',
-      badgeLabel: 'Trial Aktif',
-      durationLabel: '1 Menit',
-      durationMs: TRIAL_DURATION_MS,
-      default: true
-    },
-    {
-      code: 'AKAY-7HARI',
-      type: 'paid',
-      label: 'Lisensi 7 Hari',
-      badgeLabel: 'Aktif (7 Hari)',
-      durationLabel: '7 Hari',
-      durationMs: 7 * MS.DAY,
-      default: true
-    },
-    {
-      code: 'AKAY-1BULAN',
-      type: 'paid',
-      label: 'Lisensi 1 Bulan',
-      badgeLabel: 'Aktif (1 Bulan)',
-      durationLabel: '1 Bulan',
-      durationMs: 30 * MS.DAY,
-      default: true
-    },
-    {
-      code: 'AKAY-6BULAN',
-      type: 'paid',
-      label: 'Lisensi 6 Bulan',
-      badgeLabel: 'Aktif (6 Bulan)',
-      durationLabel: '6 Bulan',
-      durationMs: 180 * MS.DAY,
-      default: true
-    },
-    {
-      code: 'AKAY-1TAHUN',
-      type: 'paid',
-      label: 'Lisensi 1 Tahun',
-      badgeLabel: 'Aktif (1 Tahun)',
-      durationLabel: '1 Tahun',
-      durationMs: 365 * MS.DAY,
-      default: true
-    },
-    {
-      code: 'SELLER TOOLS PRO 2025',
-      type: 'paid',
-      label: 'Lisensi Premium 2025',
-      badgeLabel: 'Aktif',
-      durationLabel: null,
-      durationMs: null,
-      default: true
-    },
-    {
-      code: 'SELLERPRO-2025',
-      type: 'paid',
-      label: 'Lisensi Pro 2025',
-      badgeLabel: 'Aktif',
-      durationLabel: null,
-      durationMs: null,
-      default: true
-    },
-    {
-      code: 'SELLER-TRIAL-7',
-      type: 'trial',
-      label: 'Trial 7 Hari',
-      badgeLabel: 'Trial Aktif',
-      durationLabel: '7 Hari',
-      durationMs: 7 * MS.DAY,
-      default: false
-    }
-  ];
-
-  const LICENSE_DEFINITIONS = LICENSE_VARIANTS.reduce((acc, def) => {
-    acc[def.code] = def;
-    return acc;
-  }, {});
-
-  const DEFAULT_CODES = LICENSE_VARIANTS.filter(def => def.default).map(def => def.code);
-  const LEGACY_TRIAL_CODES = LICENSE_VARIANTS.filter(def => def.type === 'trial' && !def.default).map(def => def.code);
-
-  function getLicenseDefinition(code){
-    if(!code) return null;
-    return LICENSE_DEFINITIONS[String(code)] || null;
-  }
+  const LEGACY_TRIAL_CODES = ['SELLER-TRIAL-7'];
+  const TRIAL_DURATION_MS = 1 * 60 * 1000; // 1 menit
+  const DEFAULT_CODES = [TRIAL_CODE,'SELLER TOOLS PRO 2025','SELLERPRO-2025'];
 
   function isTrialCode(code){
     const def = getLicenseDefinition(code);
     if(def) return def.type === 'trial';
     return [TRIAL_CODE, ...LEGACY_TRIAL_CODES].includes(code);
+  }
+
+  function getUsedCodes(){
+    try{
+      const raw = localStorage.getItem(LS_USED_CODES_KEY);
+      if(!raw) return new Set();
+      const arr = JSON.parse(raw);
+      if(!Array.isArray(arr)) return new Set();
+      return new Set(arr.map(String));
+    }catch(e){ return new Set(); }
+  }
+
+  function persistUsedCodes(set){
+    try{
+      const arr = Array.from(set);
+      localStorage.setItem(LS_USED_CODES_KEY, JSON.stringify(arr));
+    }catch(e){ /* abaikan */ }
+  }
+
+  function markCodeUsed(code){
+    if(!code) return;
+    const used = getUsedCodes();
+    if(!used.has(code)){
+      used.add(code);
+      persistUsedCodes(used);
+    }
   }
 
   function hasUsedTrial(){
@@ -240,11 +48,6 @@
 
   function markTrialUsed(){
     localStorage.setItem(LS_TRIAL_USED_KEY, '1');
-  }
-
-  function clearActiveState(){
-    localStorage.removeItem(LS_ACTIVE_KEY);
-    localStorage.removeItem(LS_ACTIVE_META_KEY);
   }
 
   function readActiveState(){
@@ -268,37 +71,19 @@
       // abaikan parsing error dan perlakukan seperti tanpa metadata
     }
 
-    const def = getLicenseDefinition(code);
-
-    const claimRecord = getClaimRecord(code);
-    const deviceId = resolveDeviceId();
-    if(claimRecord && claimRecord.deviceId && claimRecord.deviceId !== deviceId){
-      clearActiveState();
-      return null;
-    }
-
-    if(isTrialCode(code) && !hasUsedTrial()){
-      markTrialUsed();
-    }
-
-    let claimTimestamp = activatedAt;
-    if(!claimTimestamp && claimRecord && claimRecord.deviceId === deviceId && typeof claimRecord.claimedAt === 'number'){
-      claimTimestamp = claimRecord.claimedAt;
-    }
-    persistClaimRecord(code, deviceId, claimTimestamp || Date.now());
-
-    const needsActivationTimestamp = def && typeof def.durationMs === 'number' && def.durationMs > 0;
-
-    if(needsActivationTimestamp && !activatedAt){
-      activatedAt = Date.now();
-      const nextMeta = Object.assign({}, metaPayload || {}, {code, activatedAt});
-      localStorage.setItem(LS_ACTIVE_META_KEY, JSON.stringify(nextMeta));
-    }
-
-    if(needsActivationTimestamp && activatedAt){
-      const expiresAt = activatedAt + def.durationMs;
-      if(Date.now() >= expiresAt){
-        clearActiveState();
+    markCodeUsed(code);
+    if(isTrialCode(code)){
+      if(!hasUsedTrial()){
+        markTrialUsed();
+      }
+      if(!activatedAt){
+        activatedAt = Date.now();
+        localStorage.setItem(LS_ACTIVE_META_KEY, JSON.stringify({code, activatedAt}));
+      }
+      if(Date.now() - activatedAt > TRIAL_DURATION_MS){
+        localStorage.removeItem(LS_ACTIVE_KEY);
+        localStorage.removeItem(LS_ACTIVE_META_KEY);
+        dispatch(false, null);
         return null;
       }
     }
@@ -313,8 +98,9 @@
       ? claim.claimedAt
       : Date.now();
     localStorage.setItem(LS_ACTIVE_KEY, code);
-    localStorage.setItem(LS_ACTIVE_META_KEY, JSON.stringify({code, activatedAt: baseTimestamp}));
-    persistClaimRecord(code, deviceId, baseTimestamp);
+    const activatedAt = Date.now();
+    localStorage.setItem(LS_ACTIVE_META_KEY, JSON.stringify({code, activatedAt}));
+    markCodeUsed(code);
     if(isTrialCode(code)){
       markTrialUsed();
     }
@@ -396,25 +182,17 @@
       if(!c) return {ok:false, message:'Masukkan kode lisensi.'};
       const current = evaluateState();
       if(current && current.code === c){
-        const detail = broadcastStatus();
-        return {ok:true, code:c, detail};
+        return {ok:true, code:c};
       }
       if(!getCatalog().includes(c)) return {ok:false, message:'Kode lisensi tidak dikenal.'};
-      const deviceId = resolveDeviceId();
-      const claim = getClaimRecord(c);
-      if(claim && claim.deviceId && claim.deviceId !== deviceId){
-        return {ok:false, message:'Kode lisensi ini sudah diklaim di perangkat lain.'};
-      }
-      const def = getLicenseDefinition(c);
-      if(claim && claim.deviceId === deviceId && def && typeof def.durationMs === 'number' && def.durationMs > 0){
-        const claimedAt = typeof claim.claimedAt === 'number' ? claim.claimedAt : null;
-        if(claimedAt && (claimedAt + def.durationMs) <= Date.now()){
-          return {ok:false, message:'Masa aktif lisensi ini sudah habis. Pesan kode baru.'};
-        }
-      }
       if(isTrialCode(c)){
         if(hasUsedTrial()){
           return {ok:false, message:'Lisensi trial sudah pernah digunakan di perangkat ini.'};
+        }
+      }else{
+        const used = getUsedCodes();
+        if(used.has(c)){
+          return {ok:false, message:'Kode lisensi ini sudah pernah digunakan di perangkat ini.'};
         }
       }
       persistActiveState(c);
